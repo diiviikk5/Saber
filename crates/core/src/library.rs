@@ -34,8 +34,8 @@ impl Library {
     /// Adds a game, or refreshes an existing import in place.
     ///
     /// Scanners call this repeatedly. Store-provided fields (title, launch
-    /// target, art) are updated; everything the user owns — favorites, tags,
-    /// hidden state and play stats — is left alone. Returns `true` when the
+    /// target, art) are updated; everything the user owns â€” favorites, tags,
+    /// hidden state and play stats â€” is left alone. Returns `true` when the
     /// game was new.
     pub fn upsert(&mut self, incoming: Game) -> bool {
         match self.get_mut(&incoming.id) {
@@ -47,6 +47,9 @@ impl Library {
                 }
                 if incoming.hero.is_some() {
                     existing.hero = incoming.hero;
+                }
+                if incoming.install_dir.is_some() {
+                    existing.install_dir = incoming.install_dir;
                 }
                 false
             }
