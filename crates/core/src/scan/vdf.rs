@@ -60,7 +60,7 @@ fn tokenize(src: &str) -> Vec<Token> {
                 while let Some(c) = chars.next() {
                     match c {
                         '"' => break,
-                        '\' => match chars.next() {
+                        '\\' => match chars.next() {
                             Some('n') => s.push('\n'),
                             Some('t') => s.push('\t'),
                             Some(other) => s.push(other),
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn unescapes_windows_paths() {
-        let doc = parse(r#""path" "E:\Steam\steamapps""#);
+        let doc = parse(r#""path" "E:\\Steam\\steamapps""#);
         assert_eq!(doc.str("path"), Some(r"E:\Steam\steamapps"));
     }
 
