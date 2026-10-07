@@ -95,3 +95,72 @@ fn tokenize(src: &str) -> Vec<Token> {
     }
     tokens
 }
+
+/// Parses a document into an object holding its top-level pairs.
+/// Malformed input yields whatever could be read rather than an error;
+/// a half-written manifest shouldn't hide the rest of the library.
+pub fn parse(src: &str) -> Value {
+    let tokens = tokenize(src);
+    let mut iter = tokens.into_iter();
+    Value::Obj(parse_entries(&mut iter))
+}
+
+fn parse_entries(iter: &mut impl Iterator<Item = Token>) -> Vec<(String, Value)> {
+    let mut entries = Vec::new();
+    loop {
+        let key = match iter.next() {
+            Some(Token::Str(key)) => key,
+            Some(Token::Close) | None => return entries,
+            Some(Token::Open) => {
+                // Stray brace: skip its block.
+                parse_entries(iter);
+                continue;
+            }
+        };
+        match iter.next() {
+            Some(Token::Str(value)) => entries.push((key, Value::Str(value))),
+            Some(Token::Open) => entries.push((key, Value::Obj(parse_entries(iter)))),
+            Some(Token::Close) | None => return entries,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const MANIFEST: &str = r#"
+"AppState"
+{
+	"appid"		"291550"
+	"name"		"Brawlhalla"
+	// comments are allowed
+	"installdir"		"Brawlhalla"
+	"UserConfig"
+	{
+		"language"		"english"
+	}
+}
+"#;
+
+    #[test]
+    fn parses_nested_objects() {
+        let doc = parse(MANIFEST);
+        let app = doc.get("appstate").unwrap();
+        assert_eq!(app.str("appid"), Some("291550"));
+        assert_eq!(app.str("NAME"), Some("Brawlhalla"));
+        assert_eq!(app.get("UserConfig").unwrap().str("language"), Some("english"));
+    }
+
+    #[test]
+    fn unescapes_windows_paths() {
+        let doc = parse(r#""path" "E:\Steam\steamapps""#);
+        assert_eq!(doc.str("path"), Some(r"E:\Steam\steamapps"));
+    }
+
+    #[test]
+    fn survives_truncated_input() {
+        let doc = parse(r#""a" { "b" "1" "c" { "d""#);
+        assert_eq!(doc.get("a").unwrap().str("b"), Some("1"));
+    }
+}
