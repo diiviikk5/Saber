@@ -120,3 +120,62 @@ impl View {
         }
     }
 }
+
+/// Case-insensitive search: every word of the query must appear in the
+/// title, a tag or the source name.
+pub fn matches(game: &Game, query: &str) -> bool {
+    let query = query.trim();
+    if query.is_empty() {
+        return true;
+    }
+    let haystack = format!(
+        "{} {} {}",
+        game.title,
+        game.tags.join(" "),
+        game.source.label()
+    )
+    .to_lowercase();
+    query
+        .to_lowercase()
+        .split_whitespace()
+        .all(|term| haystack.contains(term))
+}
+
+impl Library {
+    /// The games to show for a view, search query and sort order.
+    pub fn query(&self, view: &View, search: &str, sort: Sort) -> Vec<&Game> {
+        let mut games: Vec<&Game> = self
+            .games
+            .iter()
+            .filter(|g| view.admits(g) && matches(g, search))
+            .collect();
+        let sort = if *view == View::Recent { Sort::Recent } else { sort };
+        match sort {
+            Sort::Recent => games.sort_by(|a, b| {
+                b.last_played
+                    .cmp(&a.last_played)
+                    .then_with(|| a.title.to_lowercase().cmp(&b.title.to_lowercase()))
+            }),
+            Sort::Title => games.sort_by_key(|g| g.title.to_lowercase()),
+            Sort::Playtime => games.sort_by(|a, b| b.playtime_secs.cmp(&a.playtime_secs)),
+            Sort::Added => games.sort_by(|a, b| b.added_at.cmp(&a.added_at)),
+        }
+        games
+    }
+
+    /// The game to feature in the hero banner: the most recently played,
+    /// otherwise the newest addition.
+    pub fn featured(&self) -> Option<&Game> {
+        let visible = self.games.iter().filter(|g| !g.hidden);
+        visible
+            .clone()
+            .filter(|g| g.last_played.is_some())
+            .max_by_key(|g| g.last_played)
+            .or_else(|| visible.max_by_key(|g| g.added_at))
+    }
+
+    /// Count of visible games per source label, for the sidebar.
+    pub fn count(&self, view: &View) -> usize {
+        self.games.iter().filter(|g| view.admits(g)).count()
+    }
+}
