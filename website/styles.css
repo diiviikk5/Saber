@@ -518,3 +518,52 @@ kbd {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* palettes — kept in sync with src/theme.rs */
+
+:root[data-theme="glacier"] {
+  --bg: #0a0d12;
+  --surface: #10141b;
+  --surface-2: #161c25;
+  --accent: #7cc4ff;
+}
+
+:root[data-theme="moss"] {
+  --bg: #0b0d0a;
+  --surface: #121510;
+  --surface-2: #181c15;
+  --accent: #9bd46a;
+}
+
+:root[data-theme="orchid"] {
+  --bg: #0e0b10;
+  --surface: #151118;
+  --surface-2: #1c1620;
+  --accent: #d78cff;
+}
+
+:root[data-theme="sand"] {
+  --bg: #0f0d0a;
+  --surface: #171410;
+  --surface-2: #1e1a15;
+  --accent: #e8c27a;
+}
+
+:root[data-theme="paper"] {
+  --bg: #f4f1ea;
+  --surface: #fbf9f4;
+  --surface-2: #ebe7de;
+  --line: rgba(20, 18, 16, 0.09);
+  --text: #1a1918;
+  --muted: #6b6862;
+  --faint: #a29e96;
+  --accent: #e04a2a;
+}
+
+body,
+.nav,
+.window,
+.search,
+kbd {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
