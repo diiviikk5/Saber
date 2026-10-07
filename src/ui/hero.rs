@@ -36,16 +36,19 @@ pub fn hero(game: &Game, running: bool, cx: &mut Context<Saber>) -> impl IntoEle
         stats.push(format!("added {}", format::relative(game.added_at, now)));
     }
 
+    let radius = t.radius * 1.5;
+
     // Wide art if we have it; otherwise the cover, stretched and dimmed.
     let art = match (&game.hero, &game.cover) {
         (Some(hero), _) => img(hero.clone())
             .size_full()
+            .rounded(radius)
             .object_fit(ObjectFit::Cover)
             .into_any_element(),
         _ => div()
             .size_full()
             .opacity(0.55)
-            .child(crate::ui::card::poster_backdrop(game))
+            .child(crate::ui::card::poster_backdrop(game).rounded(radius))
             .into_any_element(),
     };
 
@@ -58,7 +61,7 @@ pub fn hero(game: &Game, running: bool, cx: &mut Context<Saber>) -> impl IntoEle
         .w_full()
         .h(px(HERO_HEIGHT))
         .flex_none()
-        .rounded(t.radius * 1.5)
+        .rounded(radius)
         .overflow_hidden()
         .bg(c.surface)
         .border_1()
@@ -70,16 +73,28 @@ pub fn hero(game: &Game, running: bool, cx: &mut Context<Saber>) -> impl IntoEle
             0.5,
         ))
         // Scrims: from the left for legibility, from below to seat the content.
-        .child(div().absolute().inset_0().bg(linear_gradient(
-            90.,
-            linear_color_stop(hsla(0., 0., 0.02, 0.88), 0.),
-            linear_color_stop(hsla(0., 0., 0.02, 0.), 0.75),
-        )))
-        .child(div().absolute().inset_0().bg(linear_gradient(
-            180.,
-            linear_color_stop(hsla(0., 0., 0., 0.), 0.45),
-            linear_color_stop(hsla(0., 0., 0., 0.55), 1.),
-        )))
+        .child(
+            div()
+                .absolute()
+                .inset_0()
+                .rounded(radius)
+                .bg(linear_gradient(
+                    90.,
+                    linear_color_stop(hsla(0., 0., 0.02, 0.88), 0.),
+                    linear_color_stop(hsla(0., 0., 0.02, 0.), 0.75),
+                )),
+        )
+        .child(
+            div()
+                .absolute()
+                .inset_0()
+                .rounded(radius)
+                .bg(linear_gradient(
+                    180.,
+                    linear_color_stop(hsla(0., 0., 0., 0.), 0.45),
+                    linear_color_stop(hsla(0., 0., 0., 0.55), 1.),
+                )),
+        )
         .child(
             div()
                 .absolute()

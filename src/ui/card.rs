@@ -12,11 +12,15 @@ use saber_core::game::Game;
 
 /// The art for a game: its cover, or a generated poster if it has none
 /// (or the file has gone missing).
-pub fn poster_art(game: &Game, t: &SaberTheme, title_size: Pixels) -> AnyElement {
-    let generated = generated_poster(game, t, title_size);
+///
+/// GPUI clips children to a parent's bounds but not its rounded corners, so
+/// the art carries the radius itself.
+pub fn poster_art(game: &Game, t: &SaberTheme, title_size: Pixels, radius: Pixels) -> AnyElement {
+    let generated = generated_poster(game, t, title_size, radius);
     match &game.cover {
         Some(path) => img(path.clone())
             .size_full()
+            .rounded(radius)
             .object_fit(ObjectFit::Cover)
             .with_fallback(move || generated.clone()())
             .into_any_element(),
@@ -39,6 +43,7 @@ fn generated_poster(
     game: &Game,
     t: &SaberTheme,
     title_size: Pixels,
+    radius: Pixels,
 ) -> std::rc::Rc<dyn Fn() -> AnyElement> {
     let (a, b) = game.poster_hues();
     let initials = game.initials();
@@ -49,6 +54,7 @@ fn generated_poster(
         div()
             .size_full()
             .relative()
+            .rounded(radius)
             .bg(linear_gradient(
                 160.,
                 linear_color_stop(hsla(a / 360., 0.42, 0.34, 1.), 0.),
@@ -87,6 +93,8 @@ pub struct CardState {
     pub running: bool,
     pub show_playtime: bool,
     pub epoch: usize,
+    /// Poster width; the grid stretches posters to fill each row exactly.
+    pub width: Pixels,
 }
 
 pub fn card(
@@ -99,14 +107,15 @@ pub fn card(
     let c = t.colors;
     let id = game.id.clone();
     let group: SharedString = format!("card-{id}").into();
-    let w = t.card_width;
-    let h = t.card_height();
+    let w = state.width;
+    let h = w * 1.5;
     let has_cover = game.cover.is_some();
     let CardState {
         selected,
         running,
         show_playtime,
         epoch,
+        ..
     } = state;
 
     let caption = if show_playtime && game.playtime_secs > 0 {
@@ -156,7 +165,7 @@ pub fn card(
                 this.open_menu(menu_id.clone(), ev.position, cx);
             }),
         )
-        .child(poster_art(game, &t, px(f32::from(w) / 9.)))
+        .child(poster_art(game, &t, px(f32::from(w) / 9.), t.radius))
         // Bottom scrim with title, revealed on hover for real covers.
         .child(
             div()

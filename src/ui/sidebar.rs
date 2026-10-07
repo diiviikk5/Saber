@@ -158,7 +158,7 @@ fn now_playing(app: &Saber, cx: &mut Context<Saber>) -> Option<AnyElement> {
                 .flex_none()
                 .rounded(px(6.))
                 .overflow_hidden()
-                .child(poster_art(game, &t, px(7.))),
+                .child(poster_art(game, &t, px(7.), px(6.))),
         )
         .child(
             div()
