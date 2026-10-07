@@ -86,3 +86,43 @@ a {
 .nav-links a:hover {
   color: var(--text);
 }
+
+/* hero */
+
+.hero {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 120px 24px 72px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 28px;
+  font: 12px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 0;
+  font: 400 clamp(52px, 9vw, 104px)/0.95 var(--serif);
+  letter-spacing: -0.025em;
+}
+
+h1 em {
+  color: var(--muted);
+}
+
+.lede {
+  max-width: 520px;
+  margin: 32px auto 0;
+  font-size: 17px;
+  color: var(--muted);
+}
+
+.meta {
+  margin: 22px 0 0;
+  font: 12px/1 var(--mono);
+  color: var(--faint);
+}
