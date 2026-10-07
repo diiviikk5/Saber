@@ -253,3 +253,61 @@ kbd {
   font: 10.5px/1.4 var(--mono);
   color: var(--muted);
 }
+
+.app {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  min-height: 460px;
+  text-align: left;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 10px;
+  border-right: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.side-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 8px;
+}
+
+.side-item b {
+  font: 400 11px/1.6 var(--mono);
+  color: var(--faint);
+}
+
+.side-item.active {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.side-item.active::before {
+  content: "";
+  width: 2px;
+  margin: 2px 8px 2px -10px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.side-item.active {
+  justify-content: flex-start;
+}
+
+.side-item.active b {
+  margin-left: auto;
+}
+
+.side-label {
+  margin: 18px 10px 6px;
+  font: 10.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
