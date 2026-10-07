@@ -24,6 +24,20 @@ pub const PAGE_PAD: f32 = 32.;
 pub const GRID_GAP: f32 = 20.;
 pub const TITLE_HEIGHT: f32 = 52.;
 
+/// How many posters fit per row, and how wide each should be so the row
+/// fills the shelf exactly. Posters grow at most ~25% past the chosen size
+/// before another column is added.
+pub fn grid_metrics(window: &Window, target: f32) -> (usize, Pixels) {
+    // Leave room for the overlay scrollbar.
+    let available = f32::from(window.viewport_size().width) - SIDEBAR_WIDTH - 2. * PAGE_PAD - 4.;
+    let available = available.max(target);
+    let cols = ((available + GRID_GAP) / (target + GRID_GAP))
+        .floor()
+        .max(1.);
+    let width = (available - GRID_GAP * (cols - 1.)) / cols;
+    (cols as usize, px(width.floor()))
+}
+
 /// The Saber mark: a hilt and a blade of accent light.
 pub fn blade_mark(size: Pixels, cx: &App) -> impl IntoElement {
     let c = theme(cx).colors;
@@ -60,7 +74,7 @@ impl Render for Saber {
         let translucent = self.settings.material != Material::Solid;
 
         let page = match self.page {
-            Page::Library => shelf::shelf(self, cx),
+            Page::Library => shelf::shelf(self, window, cx),
             Page::Settings => settings::settings_page(self, cx).into_any_element(),
         };
 

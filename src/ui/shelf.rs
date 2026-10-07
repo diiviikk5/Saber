@@ -21,7 +21,7 @@ fn view_title(view: &View) -> &'static str {
     }
 }
 
-pub fn shelf(app: &Saber, cx: &mut Context<Saber>) -> AnyElement {
+pub fn shelf(app: &Saber, window: &mut Window, cx: &mut Context<Saber>) -> AnyElement {
     let t = *theme(cx);
     let c = t.colors;
 
@@ -30,6 +30,7 @@ pub fn shelf(app: &Saber, cx: &mut Context<Saber>) -> AnyElement {
     }
 
     let games = app.visible();
+    let (_, card_width) = crate::ui::grid_metrics(window, app.settings.card_width);
     let count = games.len();
     let searching = !app.query.trim().is_empty();
     let selected = app.selected_game().map(|g| g.id.clone());
@@ -48,6 +49,7 @@ pub fn shelf(app: &Saber, cx: &mut Context<Saber>) -> AnyElement {
                 running: app.is_running(&g.id),
                 show_playtime: app.settings.show_playtime,
                 epoch: app.shelf_epoch,
+                width: card_width,
             };
             card(g, i, state, cx)
         })

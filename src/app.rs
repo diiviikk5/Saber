@@ -419,12 +419,7 @@ impl Saber {
     }
 
     pub fn columns(&self, window: &Window) -> usize {
-        let available =
-            window.viewport_size().width - px(crate::ui::SIDEBAR_WIDTH + 2. * crate::ui::PAGE_PAD);
-        let card = self.settings.card_width + crate::ui::GRID_GAP;
-        ((f32::from(available) + crate::ui::GRID_GAP) / card)
-            .floor()
-            .max(1.) as usize
+        crate::ui::grid_metrics(window, self.settings.card_width).0
     }
 
     pub fn register_actions(&self, el: Stateful<Div>, cx: &mut Context<Self>) -> Stateful<Div> {
