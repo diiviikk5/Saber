@@ -26,6 +26,8 @@ pub struct Settings {
     /// Tint the whole window with the selected game's art.
     pub ambient_art: bool,
     pub material: Material,
+    /// Look up covers for games that have none on the Steam store.
+    pub fetch_art: bool,
 }
 
 /// What sits behind the window.
@@ -67,6 +69,7 @@ impl Default for Settings {
             serif_titles: true,
             ambient_art: true,
             material: Material::Solid,
+            fetch_art: true,
         }
     }
 }
