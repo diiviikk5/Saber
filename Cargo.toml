@@ -1,0 +1,10 @@
+[package]
+name = "saber"
+version = "0.1.0"
+edition = "2024"
+description = "A personal, beautiful, lightweight game launcher"
+license = "MIT"
+repository = "https://github.com/diiviikk5/Saber"
+
+[dependencies]
+gpui-kit = "0.7.1"
