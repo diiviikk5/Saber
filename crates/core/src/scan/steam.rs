@@ -132,26 +132,27 @@ fn parse_manifest(text: &str, steamapps: &Path) -> Option<Manifest> {
     Some(Manifest { app_id, name, install_dir })
 }
 
-/// Finds Steam's cached library art for an app. Newer clients keep it in
-/// `librarycache/<id>/` (sometimes one hashed folder deeper); older ones
-/// use flat `librarycache/<id>_<name>.jpg` files.
-fn cached_art(root: &Path, app_id: u32, name: &str) -> Option<PathBuf> {
+/// Finds Steam's cached library art for an app, trying each file name in
+/// turn. Newer clients keep art in `librarycache/<id>/`, often one hashed
+/// folder deeper; older ones use flat `librarycache/<id>_<name>` files.
+fn cached_art(root: &Path, app_id: u32, names: &[&str]) -> Option<PathBuf> {
     let cache = root.join("appcache").join("librarycache");
-    let flat = cache.join(format!("{app_id}_{name}"));
-    if flat.is_file() {
-        return Some(flat);
-    }
     let dir = cache.join(app_id.to_string());
-    let direct = dir.join(name);
-    if direct.is_file() {
-        return Some(direct);
-    }
-    std::fs::read_dir(&dir)
-        .ok()?
-        .flatten()
-        .map(|e| e.path().join(name))
-        .find(|p| p.is_file())
+    let nested: Vec<PathBuf> = std::fs::read_dir(&dir)
+        .map(|it| it.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect())
+        .unwrap_or_default();
+    names.iter().find_map(|name| {
+        let flat = cache.join(format!("{app_id}_{name}"));
+        let direct = dir.join(name);
+        std::iter::once(flat)
+            .chain(std::iter::once(direct))
+            .chain(nested.iter().map(|d| d.join(name)))
+            .find(|p| p.is_file())
+    })
 }
+
+const COVER_ART: [&str; 2] = ["library_600x900.jpg", "library_capsule.jpg"];
+const HERO_ART: [&str; 3] = ["library_hero.jpg", "library_header.jpg", "header.jpg"];
 
 impl Manifest {
     pub fn into_game(self, root: &Path) -> Game {
@@ -163,9 +164,8 @@ impl Manifest {
             },
         );
         game.install_dir = Some(self.install_dir);
-        game.cover = cached_art(root, self.app_id, "library_600x900.jpg");
-        game.hero = cached_art(root, self.app_id, "library_hero.jpg")
-            .or_else(|| cached_art(root, self.app_id, "header.jpg"));
+        game.cover = cached_art(root, self.app_id, &COVER_ART);
+        game.hero = cached_art(root, self.app_id, &HERO_ART);
         game
     }
 }
