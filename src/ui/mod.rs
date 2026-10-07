@@ -73,10 +73,17 @@ impl Render for Saber {
             .flex()
             .flex_col()
             .overflow_hidden()
-            .bg(if translucent { c.bg.opacity(if c.dark { 0.72 } else { 0.8 }) } else { c.bg })
+            .bg(if translucent {
+                c.bg.opacity(if c.dark { 0.72 } else { 0.8 })
+            } else {
+                c.bg
+            })
             .text_color(c.text)
             .font_family(crate::theme::SANS)
-            .on_mouse_down(MouseButton::Left, cx.listener(|this, _, _, cx| this.close_menu(cx)))
+            .on_mouse_down(
+                MouseButton::Left,
+                cx.listener(|this, _, _, cx| this.close_menu(cx)),
+            )
             .when_some(self.ambient(cx), |d, a| d.child(a))
             .child(self.title_bar(window, cx))
             .child(
@@ -189,7 +196,13 @@ impl Saber {
                                         Input::new(&self.search)
                                             .appearance(false)
                                             .cleanable(true)
-                                            .prefix(Icon::Search.el().size(px(14.)).text_color(c.faint).ml(px(4.)))
+                                            .prefix(
+                                                Icon::Search
+                                                    .el()
+                                                    .size(px(14.))
+                                                    .text_color(c.faint)
+                                                    .ml(px(4.)),
+                                            )
                                             .suffix(widgets::kbd("Ctrl K", cx))
                                             .text_size(px(13.)),
                                     ),

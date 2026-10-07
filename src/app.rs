@@ -50,7 +50,8 @@ pub struct Saber {
 impl Saber {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
         let library: Library = storage::load_or_recover(&storage::library_path());
-        let settings: Settings = storage::load_or_recover::<Settings>(&storage::settings_path()).clamped();
+        let settings: Settings =
+            storage::load_or_recover::<Settings>(&storage::settings_path()).clamped();
         SaberTheme::from_settings(&settings).apply(cx);
         apply_material(settings.material, window);
 
@@ -91,7 +92,8 @@ impl Saber {
     // ---- queries ------------------------------------------------------
 
     pub fn visible(&self) -> Vec<&Game> {
-        self.library.query(&self.view, &self.query, self.settings.sort)
+        self.library
+            .query(&self.view, &self.query, self.settings.sort)
     }
 
     pub fn selected_game(&self) -> Option<&Game> {
@@ -172,7 +174,9 @@ impl Saber {
     }
 
     pub fn toggle_hidden(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
-        let Some(game) = self.library.get_mut(id) else { return };
+        let Some(game) = self.library.get_mut(id) else {
+            return;
+        };
         game.hidden = !game.hidden;
         let msg = if game.hidden {
             format!("{} hidden — find it under Hidden", game.title)
@@ -205,12 +209,11 @@ impl Saber {
     }
 
     pub fn play(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
-        let Some(game) = self.library.get(id).cloned() else { return };
+        let Some(game) = self.library.get(id).cloned() else {
+            return;
+        };
         if self.session.is_some() {
-            window.push_notification(
-                Notification::new().message("A game is already running"),
-                cx,
-            );
+            window.push_notification(Notification::new().message("A game is already running"), cx);
             return;
         }
         match launch::launch(&game) {
@@ -271,10 +274,13 @@ impl Saber {
     }
 
     pub fn end_session(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let Some(session) = self.session.take() else { return };
+        let Some(session) = self.session.take() else {
+            return;
+        };
         if session.tracked {
             let secs = session.started.elapsed().as_secs();
-            self.library.record_session(&session.game_id, session.started_at, secs);
+            self.library
+                .record_session(&session.game_id, session.started_at, secs);
             self.save_library();
             window.push_notification(
                 Notification::new().message(format!(
@@ -331,7 +337,9 @@ impl Saber {
             prompt: Some("Add to Saber".into()),
         });
         cx.spawn_in(window, async move |this, cx| {
-            let Ok(Ok(Some(paths))) = paths.await else { return };
+            let Ok(Ok(Some(paths))) = paths.await else {
+                return;
+            };
             let _ = this.update_in(cx, |this, window, cx| {
                 let mut last = None;
                 for path in paths {
@@ -362,8 +370,12 @@ impl Saber {
             prompt: Some("Use as cover".into()),
         });
         cx.spawn_in(window, async move |this, cx| {
-            let Ok(Ok(Some(paths))) = paths.await else { return };
-            let Some(src) = paths.into_iter().next() else { return };
+            let Ok(Ok(Some(paths))) = paths.await else {
+                return;
+            };
+            let Some(src) = paths.into_iter().next() else {
+                return;
+            };
             let _ = this.update_in(cx, |this, window, cx| {
                 let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("png");
                 let dest = storage::art_dir().join(format!("{id}-cover.{ext}"));
@@ -407,9 +419,12 @@ impl Saber {
     }
 
     pub fn columns(&self, window: &Window) -> usize {
-        let available = window.viewport_size().width - px(crate::ui::SIDEBAR_WIDTH + 2. * crate::ui::PAGE_PAD);
+        let available =
+            window.viewport_size().width - px(crate::ui::SIDEBAR_WIDTH + 2. * crate::ui::PAGE_PAD);
         let card = self.settings.card_width + crate::ui::GRID_GAP;
-        ((f32::from(available) + crate::ui::GRID_GAP) / card).floor().max(1.) as usize
+        ((f32::from(available) + crate::ui::GRID_GAP) / card)
+            .floor()
+            .max(1.) as usize
     }
 
     pub fn register_actions(&self, el: Stateful<Div>, cx: &mut Context<Self>) -> Stateful<Div> {
@@ -430,7 +445,11 @@ impl Saber {
             cx.notify();
         }))
         .on_action(cx.listener(|this, _: &OpenSettings, _, cx| {
-            this.page = if this.page == Page::Settings { Page::Library } else { Page::Settings };
+            this.page = if this.page == Page::Settings {
+                Page::Library
+            } else {
+                Page::Settings
+            };
             cx.notify();
         }))
         .on_action(cx.listener(|this, _: &AddGame, window, cx| this.add_game(window, cx)))

@@ -67,9 +67,16 @@ impl RenderOnce for IconButton {
             .when(self.active, |d| d.bg(c.accent_a(0.12)))
             .hover(|d| d.bg(c.text.opacity(0.06)).text_color(c.text))
             .active(|d| d.bg(c.text.opacity(0.1)))
-            .child(self.icon.el().size(self.size * 0.5).text_color(if self.active { c.accent } else { c.muted }))
+            .child(
+                self.icon
+                    .el()
+                    .size(self.size * 0.5)
+                    .text_color(if self.active { c.accent } else { c.muted }),
+            )
             .when_some(tooltip, |d, text| {
-                d.tooltip(move |window, cx| gpui_kit::component::tooltip::Tooltip::new(text.clone()).build(window, cx))
+                d.tooltip(move |window, cx| {
+                    gpui_kit::component::tooltip::Tooltip::new(text.clone()).build(window, cx)
+                })
             })
             .when_some(self.on_click, |d, f| d.on_click(f))
     }
@@ -115,14 +122,17 @@ pub fn switch(id: impl Into<ElementId>, on: bool, cx: &App) -> Stateful<Div> {
         .p(px(3.))
         .flex()
         .items_center()
-        .when(on, |d| d.justify_end().bg(c.accent).shadow(vec![glow(c.accent, 12.)]))
+        .when(on, |d| {
+            d.justify_end()
+                .bg(c.accent)
+                .shadow(vec![glow(c.accent, 12.)])
+        })
         .when(!on, |d| d.justify_start().bg(c.text.opacity(0.12)))
-        .child(
-            div()
-                .size(knob)
-                .rounded_full()
-                .bg(if on { c.on_accent } else { c.text.opacity(0.7) }),
-        )
+        .child(div().size(knob).rounded_full().bg(if on {
+            c.on_accent
+        } else {
+            c.text.opacity(0.7)
+        }))
 }
 
 /// A row of mutually exclusive options.
@@ -156,9 +166,13 @@ pub fn segmented<T: Copy + PartialEq + 'static>(
                 .text_size(px(12.5))
                 .cursor_pointer()
                 .when(selected, |d| {
-                    d.bg(c.surface).text_color(c.text).shadow(vec![soft_shadow(c.dark)])
+                    d.bg(c.surface)
+                        .text_color(c.text)
+                        .shadow(vec![soft_shadow(c.dark)])
                 })
-                .when(!selected, |d| d.text_color(c.muted).hover(|d| d.text_color(c.text)))
+                .when(!selected, |d| {
+                    d.text_color(c.muted).hover(|d| d.text_color(c.text))
+                })
                 .on_click(move |_, window, cx| on_pick(value, window, cx))
                 .child(*label)
         }))

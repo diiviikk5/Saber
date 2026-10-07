@@ -82,7 +82,9 @@ impl Settings {
 
     /// Keeps hand-edited values inside the ranges the UI can draw.
     pub fn clamped(mut self) -> Self {
-        self.card_width = self.card_width.clamp(Self::CARD_WIDTH.0, Self::CARD_WIDTH.1);
+        self.card_width = self
+            .card_width
+            .clamp(Self::CARD_WIDTH.0, Self::CARD_WIDTH.1);
         self.radius = self.radius.clamp(Self::RADIUS.0, Self::RADIUS.1);
         self
     }
@@ -102,7 +104,12 @@ mod tests {
 
     #[test]
     fn clamps_out_of_range_values() {
-        let s = Settings { card_width: 9000., radius: -3., ..Default::default() }.clamped();
+        let s = Settings {
+            card_width: 9000.,
+            radius: -3.,
+            ..Default::default()
+        }
+        .clamped();
         assert_eq!((s.card_width, s.radius), (240., 0.));
     }
 }

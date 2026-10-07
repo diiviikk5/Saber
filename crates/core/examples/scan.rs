@@ -12,7 +12,11 @@ fn main() {
         None => println!("steam: not found"),
     }
     for game in scan::steam::scan() {
-        let art = if game.cover.is_some() { "cover" } else { "no art" };
+        let art = if game.cover.is_some() {
+            "cover"
+        } else {
+            "no art"
+        };
         println!("  {:<40} {:<16} {art}", game.title, game.id);
     }
 

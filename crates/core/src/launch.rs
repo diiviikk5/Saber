@@ -16,7 +16,11 @@ pub enum Started {
 pub fn launch(game: &Game) -> io::Result<Started> {
     match &game.launch {
         Launch::Uri { uri } => open(uri).map(|_| Started::Handed),
-        Launch::Exe { path, args, working_dir } => {
+        Launch::Exe {
+            path,
+            args,
+            working_dir,
+        } => {
             if !is_executable(path) {
                 // Shortcuts, .url files, scripts: let the shell decide.
                 return open(&path.to_string_lossy()).map(|_| Started::Handed);
@@ -40,7 +44,9 @@ fn is_executable(path: &Path) -> bool {
             .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
     } else {
         // On unix anything that isn't an app bundle or desktop file is run directly.
-        !path.extension().is_some_and(|e| e == "app" || e == "desktop")
+        !path
+            .extension()
+            .is_some_and(|e| e == "app" || e == "desktop")
     }
 }
 

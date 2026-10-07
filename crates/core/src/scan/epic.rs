@@ -52,7 +52,9 @@ fn parse_item(text: &str) -> Option<Game> {
     );
     let mut game = Game::new(
         item.display_name.trim(),
-        Source::Epic { app_name: item.app_name },
+        Source::Epic {
+            app_name: item.app_name,
+        },
         Launch::Uri { uri },
     );
     if !item.install_location.is_empty() {
@@ -63,12 +65,16 @@ fn parse_item(text: &str) -> Option<Game> {
 
 /// Every installed Epic game on this machine.
 pub fn scan() -> Vec<Game> {
-    let Some(dir) = manifests_dir() else { return Vec::new() };
+    let Some(dir) = manifests_dir() else {
+        return Vec::new();
+    };
     scan_dir(&dir)
 }
 
 fn scan_dir(dir: &Path) -> Vec<Game> {
-    let Ok(entries) = std::fs::read_dir(dir) else { return Vec::new() };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
     let mut games: Vec<Game> = entries
         .flatten()
         .map(|e| e.path())
@@ -106,7 +112,8 @@ mod tests {
         assert_eq!(
             game.launch,
             Launch::Uri {
-                uri: "com.epicgames.launcher://apps/ns%3Aitem%3Afg?action=launch&silent=true".into()
+                uri: "com.epicgames.launcher://apps/ns%3Aitem%3Afg?action=launch&silent=true"
+                    .into()
             }
         );
         assert_eq!(game.install_dir, Some(PathBuf::from("D:/Games/FallGuys")));

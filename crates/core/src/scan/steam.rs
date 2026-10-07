@@ -27,7 +27,9 @@ pub fn steam_root() -> Option<PathBuf> {
     if let Some(p) = std::env::var_os("SABER_STEAM_ROOT") {
         return Some(p.into());
     }
-    candidates().into_iter().find(|p| p.join("steamapps").is_dir())
+    candidates()
+        .into_iter()
+        .find(|p| p.join("steamapps").is_dir())
 }
 
 #[cfg(windows)]
@@ -103,7 +105,9 @@ pub fn library_folders(root: &Path) -> Vec<PathBuf> {
 fn same_dir(a: &Path, b: &Path) -> bool {
     match (a.canonicalize(), b.canonicalize()) {
         (Ok(a), Ok(b)) => a == b,
-        _ => a.to_string_lossy().eq_ignore_ascii_case(&b.to_string_lossy()),
+        _ => a
+            .to_string_lossy()
+            .eq_ignore_ascii_case(&b.to_string_lossy()),
     }
 }
 
@@ -129,7 +133,11 @@ fn parse_manifest(text: &str, steamapps: &Path) -> Option<Manifest> {
     if name.is_empty() || is_tool(app_id, &name) {
         return None;
     }
-    Some(Manifest { app_id, name, install_dir })
+    Some(Manifest {
+        app_id,
+        name,
+        install_dir,
+    })
 }
 
 /// Finds Steam's cached library art for an app, trying each file name in
@@ -139,7 +147,12 @@ fn cached_art(root: &Path, app_id: u32, names: &[&str]) -> Option<PathBuf> {
     let cache = root.join("appcache").join("librarycache");
     let dir = cache.join(app_id.to_string());
     let nested: Vec<PathBuf> = std::fs::read_dir(&dir)
-        .map(|it| it.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect())
+        .map(|it| {
+            it.flatten()
+                .map(|e| e.path())
+                .filter(|p| p.is_dir())
+                .collect()
+        })
         .unwrap_or_default();
     names.iter().find_map(|name| {
         let flat = cache.join(format!("{app_id}_{name}"));
@@ -158,7 +171,9 @@ impl Manifest {
     pub fn into_game(self, root: &Path) -> Game {
         let mut game = Game::new(
             self.name,
-            Source::Steam { app_id: self.app_id },
+            Source::Steam {
+                app_id: self.app_id,
+            },
             Launch::Uri {
                 uri: format!("steam://rungameid/{}", self.app_id),
             },
@@ -177,7 +192,9 @@ pub fn scan() -> Vec<Game> {
     };
     let mut games = Vec::new();
     for folder in library_folders(&root) {
-        let Ok(entries) = std::fs::read_dir(&folder) else { continue };
+        let Ok(entries) = std::fs::read_dir(&folder) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let path = entry.path();
             let is_manifest = path
@@ -200,7 +217,8 @@ mod tests {
 
     #[test]
     fn manifest_resolves_install_dir() {
-        let text = r#""AppState" { "appid" "291550" "name" "Brawlhalla" "installdir" "Brawlhalla" }"#;
+        let text =
+            r#""AppState" { "appid" "291550" "name" "Brawlhalla" "installdir" "Brawlhalla" }"#;
         let m = parse_manifest(text, Path::new("/lib/steamapps")).unwrap();
         assert_eq!(m.app_id, 291550);
         assert_eq!(m.install_dir, Path::new("/lib/steamapps/common/Brawlhalla"));

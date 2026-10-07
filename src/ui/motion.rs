@@ -45,16 +45,12 @@ where
 
 /// A small dot that breathes, for "now playing".
 pub fn pulse_dot(color: Hsla, id: &'static str) -> impl IntoElement {
-    div()
-        .size(px(7.))
-        .rounded_full()
-        .bg(color)
-        .with_animation(
-            id,
-            Animation::new(Duration::from_millis(1600)).repeat(),
-            move |el, t| {
-                let breath = 0.5 + 0.5 * (t * std::f32::consts::TAU).cos();
-                el.opacity(0.35 + 0.65 * breath)
-            },
-        )
+    div().size(px(7.)).rounded_full().bg(color).with_animation(
+        id,
+        Animation::new(Duration::from_millis(1600)).repeat(),
+        move |el, t| {
+            let breath = 0.5 + 0.5 * (t * std::f32::consts::TAU).cos();
+            el.opacity(0.35 + 0.65 * breath)
+        },
+    )
 }

@@ -24,21 +24,30 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
         let _ = weak.update(cx, |this, cx| this.update_settings(window, cx, f));
     };
 
-    let palettes = div().flex().flex_wrap().gap(px(12.)).children(PALETTES.iter().map(|p| {
-        let edit = edit.clone();
-        let id = p.id;
-        palette_card(p, s.theme == p.id, cx).on_click(move |_, window, cx| {
-            edit(Box::new(move |s| {
-                s.theme = id.into();
-                s.accent = None;
-            }), window, cx)
-        })
-    }));
+    let palettes = div()
+        .flex()
+        .flex_wrap()
+        .gap(px(12.))
+        .children(PALETTES.iter().map(|p| {
+            let edit = edit.clone();
+            let id = p.id;
+            palette_card(p, s.theme == p.id, cx).on_click(move |_, window, cx| {
+                edit(
+                    Box::new(move |s| {
+                        s.theme = id.into();
+                        s.accent = None;
+                    }),
+                    window,
+                    cx,
+                )
+            })
+        }));
 
     let accents = {
         let palette_accent = saber_core::palette::by_id(&s.theme).accent;
         let mut row = div().flex().items_center().gap(px(10.));
-        let options = std::iter::once((None, palette_accent)).chain(ACCENTS.iter().map(|a| (Some(*a), *a)));
+        let options =
+            std::iter::once((None, palette_accent)).chain(ACCENTS.iter().map(|a| (Some(*a), *a)));
         for (i, (value, color)) in options.enumerate() {
             let selected = s.accent == value;
             let edit = edit.clone();
@@ -53,12 +62,18 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
                     .items_center()
                     .justify_center()
                     .bg(color)
-                    .when(selected, |d| d.border_2().border_color(c.text).shadow(vec![glow(color, 14.)]))
+                    .when(selected, |d| {
+                        d.border_2()
+                            .border_color(c.text)
+                            .shadow(vec![glow(color, 14.)])
+                    })
                     .when(!selected, |d| d.hover(|d| d.shadow(vec![glow(color, 10.)])))
                     .when(value.is_none(), |d| {
                         d.child(div().size(px(6.)).rounded_full().bg(hsla(0., 0., 0., 0.45)))
                     })
-                    .on_click(move |_, window, cx| edit(Box::new(move |s| s.accent = value), window, cx)),
+                    .on_click(move |_, window, cx| {
+                        edit(Box::new(move |s| s.accent = value), window, cx)
+                    }),
             );
         }
         row
@@ -67,7 +82,9 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
     macro_rules! pick {
         ($edit:expr, $field:ident) => {{
             let edit = $edit.clone();
-            move |v, window: &mut Window, cx: &mut App| edit(Box::new(move |s: &mut Settings| s.$field = v), window, cx)
+            move |v, window: &mut Window, cx: &mut App| {
+                edit(Box::new(move |s: &mut Settings| s.$field = v), window, cx)
+            }
         }};
     }
 
@@ -77,8 +94,18 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
     };
 
     let appearance = section("Appearance", cx)
-        .child(block("Theme", "Six moods. The website wears the same ones.", palettes, cx))
-        .child(row("Accent", "The color of focus, play buttons and glow. The dotted swatch follows the theme.", accents, cx))
+        .child(block(
+            "Theme",
+            "Six moods. The website wears the same ones.",
+            palettes,
+            cx,
+        ))
+        .child(row(
+            "Accent",
+            "The color of focus, play buttons and glow. The dotted swatch follows the theme.",
+            accents,
+            cx,
+        ))
         .child(row(
             "Window material",
             "Mica and Acrylic let your desktop show through (Windows 11).",
@@ -94,7 +121,13 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
         .child(row(
             "Titles",
             "Typeface for game titles and headings.",
-            segmented("serif", &[(true, "Serif"), (false, "Sans")], s.serif_titles, cx, pick!(edit, serif_titles)),
+            segmented(
+                "serif",
+                &[(true, "Serif"), (false, "Sans")],
+                s.serif_titles,
+                cx,
+                pick!(edit, serif_titles),
+            ),
             cx,
         ))
         .child(row(
@@ -121,13 +154,58 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
             ),
             cx,
         ))
-        .child(row("Featured banner", "Show the selected game big above the shelf.", toggle("hero", s.show_hero, |s| s.show_hero = !s.show_hero, cx), cx))
-        .child(row("Ambient art", "Let the selected game's art tint the whole window.", toggle("ambient", s.ambient_art, |s| s.ambient_art = !s.ambient_art, cx), cx))
-        .child(row("Playtime on posters", "Show hours played under each title.", toggle("playtime", s.show_playtime, |s| s.show_playtime = !s.show_playtime, cx), cx));
+        .child(row(
+            "Featured banner",
+            "Show the selected game big above the shelf.",
+            toggle("hero", s.show_hero, |s| s.show_hero = !s.show_hero, cx),
+            cx,
+        ))
+        .child(row(
+            "Ambient art",
+            "Let the selected game's art tint the whole window.",
+            toggle(
+                "ambient",
+                s.ambient_art,
+                |s| s.ambient_art = !s.ambient_art,
+                cx,
+            ),
+            cx,
+        ))
+        .child(row(
+            "Playtime on posters",
+            "Show hours played under each title.",
+            toggle(
+                "playtime",
+                s.show_playtime,
+                |s| s.show_playtime = !s.show_playtime,
+                cx,
+            ),
+            cx,
+        ));
 
     let behavior = section("Behavior", cx)
-        .child(row("Minimize on launch", "Get out of the way while you play.", toggle("minimize", s.minimize_on_launch, |s| s.minimize_on_launch = !s.minimize_on_launch, cx), cx))
-        .child(row("Scan at startup", "Pick up new Steam and Epic installs automatically.", toggle("scan", s.scan_on_start, |s| s.scan_on_start = !s.scan_on_start, cx), cx));
+        .child(row(
+            "Minimize on launch",
+            "Get out of the way while you play.",
+            toggle(
+                "minimize",
+                s.minimize_on_launch,
+                |s| s.minimize_on_launch = !s.minimize_on_launch,
+                cx,
+            ),
+            cx,
+        ))
+        .child(row(
+            "Scan at startup",
+            "Pick up new Steam and Epic installs automatically.",
+            toggle(
+                "scan",
+                s.scan_on_start,
+                |s| s.scan_on_start = !s.scan_on_start,
+                cx,
+            ),
+            cx,
+        ));
 
     let data_dir = storage::data_dir();
     let library = section("Library", cx)
@@ -151,11 +229,15 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
             pill_button("reset", Icon::Reset, "Reset", cx).on_click({
                 let edit = edit.clone();
                 move |_, window, cx| {
-                    edit(Box::new(|s| {
-                        let keep = (s.minimize_on_launch, s.scan_on_start, s.sort);
-                        *s = Settings::default();
-                        (s.minimize_on_launch, s.scan_on_start, s.sort) = keep;
-                    }), window, cx)
+                    edit(
+                        Box::new(|s| {
+                            let keep = (s.minimize_on_launch, s.scan_on_start, s.sort);
+                            *s = Settings::default();
+                            (s.minimize_on_launch, s.scan_on_start, s.sort) = keep;
+                        }),
+                        window,
+                        cx,
+                    )
                 }
             }),
             cx,
@@ -172,15 +254,20 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
         ("Esc", "Clear / back"),
     ];
     let keys = section("Keyboard", cx).child(
-        div().flex().flex_wrap().gap_y(px(10.)).py(px(14.)).children(shortcuts.into_iter().map(|(k, label)| {
-            div()
-                .w(relative(0.5))
-                .flex()
-                .items_center()
-                .gap(px(10.))
-                .child(div().w(px(64.)).child(kbd(k, cx)))
-                .child(div().text_size(px(13.)).text_color(c.muted).child(label))
-        })),
+        div()
+            .flex()
+            .flex_wrap()
+            .gap_y(px(10.))
+            .py(px(14.))
+            .children(shortcuts.into_iter().map(|(k, label)| {
+                div()
+                    .w(relative(0.5))
+                    .flex()
+                    .items_center()
+                    .gap(px(10.))
+                    .child(div().w(px(64.)).child(kbd(k, cx)))
+                    .child(div().text_size(px(13.)).text_color(c.muted).child(label))
+            })),
     );
 
     let page = div()
@@ -202,7 +289,12 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
                         .text_color(c.text)
                         .child("Make it yours."),
                 )
-                .child(div().text_size(px(14.)).text_color(c.muted).child("Everything here applies instantly and is saved as you go.")),
+                .child(
+                    div()
+                        .text_size(px(14.))
+                        .text_color(c.muted)
+                        .child("Everything here applies instantly and is saved as you go."),
+                ),
         )
         .child(appearance)
         .child(behavior)
@@ -216,19 +308,15 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
                 .child(format!("Saber {} · Rust + GPUI", env!("CARGO_PKG_VERSION"))),
         );
 
-    div()
-        .id("settings")
-        .size_full()
-        .overflow_y_scroll()
-        .child(
-            div()
-                .flex()
-                .justify_center()
-                .px(px(PAGE_PAD))
-                .pt(px(18.))
-                .pb(px(64.))
-                .child(motion::rise_in(page, "settings-in", 0)),
-        )
+    div().id("settings").size_full().overflow_y_scroll().child(
+        div()
+            .flex()
+            .justify_center()
+            .px(px(PAGE_PAD))
+            .pt(px(18.))
+            .pb(px(64.))
+            .child(motion::rise_in(page, "settings-in", 0)),
+    )
 }
 
 fn section(title: &str, cx: &App) -> Div {
@@ -252,8 +340,19 @@ fn label(title: &str, hint: impl Into<SharedString>, cx: &App) -> Div {
         .flex_col()
         .gap(px(2.))
         .min_w_0()
-        .child(div().text_size(px(14.)).text_color(c.text).child(title.to_string()))
-        .child(div().text_size(px(12.5)).text_color(c.muted).truncate().child(hint.into()))
+        .child(
+            div()
+                .text_size(px(14.))
+                .text_color(c.text)
+                .child(title.to_string()),
+        )
+        .child(
+            div()
+                .text_size(px(12.5))
+                .text_color(c.muted)
+                .truncate()
+                .child(hint.into()),
+        )
 }
 
 fn row(title: &str, hint: impl Into<SharedString>, control: impl IntoElement, cx: &App) -> Div {
@@ -307,9 +406,17 @@ fn palette_card(p: &Palette, selected: bool, cx: &App) -> Stateful<Div> {
                 .border_color(if selected { accent } else { c.line_strong })
                 .when(selected, |d| d.shadow(vec![glow(accent, 16.)]))
                 .flex()
-                .child(div().w(px(26.)).h_full().bg(surface.opacity(0.6)).child(
-                    div().mt(px(12.)).ml(px(6.)).w(px(3.)).h(px(9.)).rounded(px(2.)).bg(accent),
-                ))
+                .child(
+                    div().w(px(26.)).h_full().bg(surface.opacity(0.6)).child(
+                        div()
+                            .mt(px(12.))
+                            .ml(px(6.))
+                            .w(px(3.))
+                            .h(px(9.))
+                            .rounded(px(2.))
+                            .bg(accent),
+                    ),
+                )
                 .child(
                     div()
                         .flex_1()
@@ -318,18 +425,13 @@ fn palette_card(p: &Palette, selected: bool, cx: &App) -> Stateful<Div> {
                         .flex_col()
                         .gap(px(6.))
                         .child(div().h(px(14.)).rounded(px(3.)).bg(surface))
-                        .child(
-                            div()
-                                .flex()
-                                .gap(px(4.))
-                                .children((0..4).map(|i| {
-                                    div()
-                                        .w(px(14.))
-                                        .h(px(21.))
-                                        .rounded(px(2.))
-                                        .bg(if i == 0 { accent.opacity(0.85) } else { text.opacity(0.12) })
-                                })),
-                        ),
+                        .child(div().flex().gap(px(4.)).children((0..4).map(|i| {
+                            div().w(px(14.)).h(px(21.)).rounded(px(2.)).bg(if i == 0 {
+                                accent.opacity(0.85)
+                            } else {
+                                text.opacity(0.12)
+                            })
+                        }))),
                 ),
         )
         .child(
@@ -339,7 +441,9 @@ fn palette_card(p: &Palette, selected: bool, cx: &App) -> Stateful<Div> {
                 .gap(px(6.))
                 .text_size(px(12.5))
                 .text_color(if selected { c.text } else { c.muted })
-                .when(selected, |d| d.child(Icon::Check.el().size(px(12.)).text_color(c.accent)))
+                .when(selected, |d| {
+                    d.child(Icon::Check.el().size(px(12.)).text_color(c.accent))
+                })
                 .child(p.name),
         )
 }

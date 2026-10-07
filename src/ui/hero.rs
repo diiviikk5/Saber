@@ -3,7 +3,6 @@
 use crate::app::Saber;
 use crate::assets::Icon;
 use crate::theme::theme;
-use crate::ui::card::poster_art;
 use crate::ui::motion;
 use crate::ui::widgets::{glow, lift_shadow};
 use gpui_kit::prelude::*;
@@ -46,7 +45,7 @@ pub fn hero(game: &Game, running: bool, cx: &mut Context<Saber>) -> impl IntoEle
         _ => div()
             .size_full()
             .opacity(0.55)
-            .child(poster_art(game, &t, px(18.)))
+            .child(crate::ui::card::poster_backdrop(game))
             .into_any_element(),
     };
 
@@ -65,9 +64,11 @@ pub fn hero(game: &Game, running: bool, cx: &mut Context<Saber>) -> impl IntoEle
         .border_1()
         .border_color(c.line)
         .shadow(vec![lift_shadow(c.dark)])
-        .child(
-            motion::fade_in(div().absolute().inset_0().child(art), ("hero-art", hash_id(&id)), 0.5),
-        )
+        .child(motion::fade_in(
+            div().absolute().inset_0().child(art),
+            ("hero-art", hash_id(&id)),
+            0.5,
+        ))
         // Scrims: from the left for legibility, from below to seat the content.
         .child(div().absolute().inset_0().bg(linear_gradient(
             90.,
@@ -80,97 +81,122 @@ pub fn hero(game: &Game, running: bool, cx: &mut Context<Saber>) -> impl IntoEle
             linear_color_stop(hsla(0., 0., 0., 0.55), 1.),
         )))
         .child(
-            motion::rise_in(
-                div()
-                    .absolute()
-                    .left(px(36.))
-                    .bottom(px(32.))
-                    .right(px(36.))
-                    .flex()
-                    .flex_col()
-                    .gap(px(10.))
-                    .child(
-                        div()
-                            .flex()
-                            .items_center()
-                            .gap(px(8.))
-                            .when(running, |d| d.child(motion::pulse_dot(c.accent, "hero-pulse")))
-                            .child(
-                                div()
-                                    .font_family(crate::theme::MONO)
-                                    .text_size(px(11.))
-                                    .text_color(c.accent)
-                                    .child(eyebrow.to_uppercase()),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .max_w(px(640.))
-                            .font_family(t.display_font())
-                            .text_size(px(46.))
-                            .line_height(relative(1.02))
-                            .text_color(c.on_art)
-                            .line_clamp(2)
-                            .child(game.title.clone()),
-                    )
-                    .child(
-                        div()
-                            .flex()
-                            .gap(px(8.))
-                            .text_size(px(13.))
-                            .text_color(c.on_art.opacity(0.7))
-                            .children(stats.into_iter().enumerate().map(|(i, s)| {
-                                div()
-                                    .flex()
-                                    .gap(px(8.))
-                                    .when(i > 0, |d| d.child(div().text_color(c.on_art.opacity(0.35)).child("·")))
-                                    .child(s)
-                            })),
-                    )
-                    .child(
-                        div()
-                            .mt(px(10.))
-                            .flex()
-                            .items_center()
-                            .gap(px(10.))
-                            .child(
-                                div()
-                                    .id("hero-play")
-                                    .h(px(42.))
-                                    .px(px(22.))
-                                    .flex()
-                                    .items_center()
-                                    .gap(px(9.))
-                                    .rounded_full()
-                                    .cursor_pointer()
-                                    .bg(c.accent)
-                                    .text_color(c.on_accent)
-                                    .text_size(px(14.))
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .shadow(vec![glow(c.accent, 24.)])
-                                    .hover(|d| d.bg(c.accent.opacity(0.9)).shadow(vec![glow(c.accent, 34.)]))
-                                    .active(|d| d.opacity(0.85))
-                                    .on_click(cx.listener(move |this, _, window, cx| this.play(&play_id, window, cx)))
-                                    .child(Icon::Play.el().size(px(14.)).text_color(c.on_accent))
-                                    .child(if running { "Running" } else { "Play" }),
-                            )
-                            .child(round_button(
-                                "hero-fav",
-                                if game.favorite { Icon::StarFill } else { Icon::Star },
-                                game.favorite,
-                                cx,
-                            )
-                            .on_click(cx.listener(move |this, _, _, cx| this.toggle_favorite(&fav_id, cx))))
-                            .child(round_button("hero-more", Icon::Ellipsis, false, cx).on_click(cx.listener(
-                                move |this, ev: &ClickEvent, _, cx| {
-                                    let pos = ev.position();
-                                    this.open_menu(menu_id.clone(), pos, cx);
-                                },
-                            ))),
-                    ),
-                ("hero-content", hash_id(&id)),
-                0,
-            ),
+            div()
+                .absolute()
+                .left(px(36.))
+                .bottom(px(32.))
+                .right(px(36.))
+                .child(motion::rise_in(
+                    div()
+                        .relative()
+                        .flex()
+                        .flex_col()
+                        .gap(px(10.))
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap(px(8.))
+                                .when(running, |d| {
+                                    d.child(motion::pulse_dot(c.accent, "hero-pulse"))
+                                })
+                                .child(
+                                    div()
+                                        .font_family(crate::theme::MONO)
+                                        .text_size(px(11.))
+                                        .text_color(c.accent)
+                                        .child(eyebrow.to_uppercase()),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .max_w(px(640.))
+                                .font_family(t.display_font())
+                                .text_size(px(46.))
+                                .line_height(relative(1.02))
+                                .text_color(c.on_art)
+                                .line_clamp(2)
+                                .child(game.title.clone()),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .gap(px(8.))
+                                .text_size(px(13.))
+                                .text_color(c.on_art.opacity(0.7))
+                                .children(stats.into_iter().enumerate().map(|(i, s)| {
+                                    div()
+                                        .flex()
+                                        .gap(px(8.))
+                                        .when(i > 0, |d| {
+                                            d.child(
+                                                div().text_color(c.on_art.opacity(0.35)).child("·"),
+                                            )
+                                        })
+                                        .child(s)
+                                })),
+                        )
+                        .child(
+                            div()
+                                .mt(px(10.))
+                                .flex()
+                                .items_center()
+                                .gap(px(10.))
+                                .child(
+                                    div()
+                                        .id("hero-play")
+                                        .h(px(42.))
+                                        .px(px(22.))
+                                        .flex()
+                                        .items_center()
+                                        .gap(px(9.))
+                                        .rounded_full()
+                                        .cursor_pointer()
+                                        .bg(c.accent)
+                                        .text_color(c.on_accent)
+                                        .text_size(px(14.))
+                                        .font_weight(FontWeight::SEMIBOLD)
+                                        .shadow(vec![glow(c.accent, 24.)])
+                                        .hover(|d| {
+                                            d.bg(c.accent.opacity(0.9))
+                                                .shadow(vec![glow(c.accent, 34.)])
+                                        })
+                                        .active(|d| d.opacity(0.85))
+                                        .on_click(cx.listener(move |this, _, window, cx| {
+                                            this.play(&play_id, window, cx)
+                                        }))
+                                        .child(
+                                            Icon::Play.el().size(px(14.)).text_color(c.on_accent),
+                                        )
+                                        .child(if running { "Running" } else { "Play" }),
+                                )
+                                .child(
+                                    round_button(
+                                        "hero-fav",
+                                        if game.favorite {
+                                            Icon::StarFill
+                                        } else {
+                                            Icon::Star
+                                        },
+                                        game.favorite,
+                                        cx,
+                                    )
+                                    .on_click(cx.listener(
+                                        move |this, _, _, cx| this.toggle_favorite(&fav_id, cx),
+                                    )),
+                                )
+                                .child(
+                                    round_button("hero-more", Icon::Ellipsis, false, cx).on_click(
+                                        cx.listener(move |this, ev: &ClickEvent, _, cx| {
+                                            let pos = ev.position();
+                                            this.open_menu(menu_id.clone(), pos, cx);
+                                        }),
+                                    ),
+                                ),
+                        ),
+                    ("hero-content", hash_id(&id)),
+                    0,
+                )),
         );
     banner
 }
@@ -189,7 +215,11 @@ fn round_button(id: &'static str, icon: Icon, active: bool, cx: &App) -> Statefu
         .border_1()
         .border_color(hsla(0., 0., 1., 0.14))
         .hover(|d| d.bg(hsla(0., 0., 1., 0.18)))
-        .child(icon.el().size(px(16.)).text_color(if active { c.accent } else { c.on_art }))
+        .child(
+            icon.el()
+                .size(px(16.))
+                .text_color(if active { c.accent } else { c.on_art }),
+        )
 }
 
 fn hash_id(id: &str) -> usize {

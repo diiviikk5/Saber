@@ -43,7 +43,11 @@ impl Colors {
             muted: hex(p.muted),
             faint: hex(p.faint),
             accent,
-            on_accent: if accent.l > 0.62 { hex(0x0b0b0c) } else { hex(0xffffff) },
+            on_accent: if accent.l > 0.62 {
+                hex(0x0b0b0c)
+            } else {
+                hex(0xffffff)
+            },
             on_art: hex(0xf6f3ee),
         }
     }
@@ -89,7 +93,11 @@ impl SaberTheme {
     pub fn apply(self, cx: &mut App) {
         cx.set_global(self);
         let c = self.colors;
-        let mode = if c.dark { ThemeMode::Dark } else { ThemeMode::Light };
+        let mode = if c.dark {
+            ThemeMode::Dark
+        } else {
+            ThemeMode::Light
+        };
         Theme::change(mode, None, cx);
         let theme = Theme::global_mut(cx);
         theme.font_family = SANS.into();

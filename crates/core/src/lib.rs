@@ -2,10 +2,10 @@
 //! where it lives on disk, how games are discovered and how they are launched.
 pub mod format;
 pub mod game;
-pub mod library;
-pub mod storage;
-pub mod palette;
-pub mod settings;
-pub mod scan;
 pub mod launch;
+pub mod library;
 pub mod manual;
+pub mod palette;
+pub mod scan;
+pub mod settings;
+pub mod storage;

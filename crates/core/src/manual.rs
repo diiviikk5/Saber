@@ -11,7 +11,9 @@ pub fn title_from_path(path: &Path) -> String {
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_default();
 
-    const NOISE: [&str; 8] = ["win64", "win32", "x64", "x86", "shipping", "launcher", "dx11", "dx12"];
+    const NOISE: [&str; 8] = [
+        "win64", "win32", "x64", "x86", "shipping", "launcher", "dx11", "dx12",
+    ];
     let mut words: Vec<String> = Vec::new();
     for chunk in stem.split(['_', '-', '.', ' ']) {
         if chunk.is_empty() || NOISE.contains(&chunk.to_ascii_lowercase().as_str()) {
@@ -46,7 +48,8 @@ fn split_camel(s: &str) -> Vec<String> {
         let next_lower = chars.get(i + 1).is_some_and(|c| c.is_lowercase());
         let boundary = (prev.is_lowercase() && cur.is_uppercase())
             || (prev.is_uppercase() && cur.is_uppercase() && next_lower)
-            || (prev.is_alphabetic() != cur.is_alphabetic() && !(prev.is_numeric() && cur.is_numeric()));
+            || (prev.is_alphabetic() != cur.is_alphabetic()
+                && !(prev.is_numeric() && cur.is_numeric()));
         if boundary {
             words.push(chars[start..i].iter().collect());
             start = i;

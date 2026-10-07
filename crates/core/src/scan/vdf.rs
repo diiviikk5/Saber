@@ -149,7 +149,10 @@ mod tests {
         let app = doc.get("appstate").unwrap();
         assert_eq!(app.str("appid"), Some("291550"));
         assert_eq!(app.str("NAME"), Some("Brawlhalla"));
-        assert_eq!(app.get("UserConfig").unwrap().str("language"), Some("english"));
+        assert_eq!(
+            app.get("UserConfig").unwrap().str("language"),
+            Some("english")
+        );
     }
 
     #[test]

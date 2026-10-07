@@ -152,7 +152,11 @@ impl Library {
             .iter()
             .filter(|g| view.admits(g) && matches(g, search))
             .collect();
-        let sort = if *view == View::Recent { Sort::Recent } else { sort };
+        let sort = if *view == View::Recent {
+            Sort::Recent
+        } else {
+            sort
+        };
         match sort {
             Sort::Recent => games.sort_by(|a, b| {
                 b.last_played
@@ -205,7 +209,12 @@ mod tests {
         let mut a = game("Hollow Tides", Source::Steam { app_id: 1 });
         a.last_played = Some(500);
         a.playtime_secs = 10;
-        let mut b = game("ashen crown", Source::Epic { app_name: "ash".into() });
+        let mut b = game(
+            "ashen crown",
+            Source::Epic {
+                app_name: "ash".into(),
+            },
+        );
         b.favorite = true;
         b.playtime_secs = 99;
         b.tags = vec!["souls".into()];
@@ -250,9 +259,18 @@ mod tests {
     #[test]
     fn search_terms_match_title_tags_and_source() {
         let lib = sample();
-        assert_eq!(titles(lib.query(&View::All, "SOULS", Sort::Title)), ["ashen crown"]);
-        assert_eq!(titles(lib.query(&View::All, "neon manual", Sort::Title)), ["Neon Drift"]);
-        assert!(lib.query(&View::All, "nothing here", Sort::Title).is_empty());
+        assert_eq!(
+            titles(lib.query(&View::All, "SOULS", Sort::Title)),
+            ["ashen crown"]
+        );
+        assert_eq!(
+            titles(lib.query(&View::All, "neon manual", Sort::Title)),
+            ["Neon Drift"]
+        );
+        assert!(
+            lib.query(&View::All, "nothing here", Sort::Title)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -279,6 +297,9 @@ mod tests {
         lib.record_launch("steam-1", 1000);
         lib.record_session("steam-1", 1000, 50);
         let g = lib.get("steam-1").unwrap();
-        assert_eq!((g.playtime_secs, g.launch_count, g.last_played), (60, 1, Some(1000)));
+        assert_eq!(
+            (g.playtime_secs, g.launch_count, g.last_played),
+            (60, 1, Some(1000))
+        );
     }
 }

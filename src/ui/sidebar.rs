@@ -3,10 +3,10 @@
 use crate::app::{Page, Saber};
 use crate::assets::Icon;
 use crate::theme::{MONO, theme};
+use crate::ui::SIDEBAR_WIDTH;
 use crate::ui::card::poster_art;
 use crate::ui::motion;
 use crate::ui::widgets::{IconButton, eyebrow, glow};
-use crate::ui::SIDEBAR_WIDTH;
 use gpui_kit::prelude::*;
 use gpui_kit::*;
 use saber_core::library::View;
@@ -62,14 +62,28 @@ pub fn sidebar(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement + use<>
         })
         .when(hidden > 0, |d| {
             let active = on_library && app.view == View::Hidden;
-            d.child(item(View::Hidden, Icon::EyeOff, "Hidden", hidden, active, cx))
+            d.child(item(
+                View::Hidden,
+                Icon::EyeOff,
+                "Hidden",
+                hidden,
+                active,
+                cx,
+            ))
         })
         .child(div().flex_1())
         .when_some(now_playing(app, cx), |d, el| d.child(el))
         .child(footer(app, cx).text_color(c.muted))
 }
 
-fn item(view: View, icon: Icon, label: &'static str, count: usize, active: bool, cx: &mut Context<Saber>) -> impl IntoElement + use<> {
+fn item(
+    view: View,
+    icon: Icon,
+    label: &'static str,
+    count: usize,
+    active: bool,
+    cx: &mut Context<Saber>,
+) -> impl IntoElement + use<> {
     let c = theme(cx).colors;
     let target = view.clone();
     div()
@@ -102,7 +116,11 @@ fn item(view: View, icon: Icon, label: &'static str, count: usize, active: bool,
                     .shadow(vec![glow(c.accent, 10.)]),
             )
         })
-        .child(icon.el().size(px(15.)).text_color(if active { c.accent } else { c.faint }))
+        .child(
+            icon.el()
+                .size(px(15.))
+                .text_color(if active { c.accent } else { c.faint }),
+        )
         .child(div().flex_1().child(label))
         .child(
             div()
@@ -179,7 +197,11 @@ fn footer(app: &Saber, cx: &mut Context<Saber>) -> Div {
     let scanning = app.scanning;
     let settings_open = app.page == Page::Settings;
     let rescan = IconButton::new("rescan", Icon::Refresh)
-        .tooltip(if scanning { "Scanning…" } else { "Rescan Steam & Epic  (Ctrl R)" })
+        .tooltip(if scanning {
+            "Scanning…"
+        } else {
+            "Rescan Steam & Epic  (Ctrl R)"
+        })
         .on_click(cx.listener(|this, _, window, cx| this.rescan(true, window, cx)));
     div()
         .flex()
@@ -208,7 +230,11 @@ fn footer(app: &Saber, cx: &mut Context<Saber>) -> Div {
                 .active(settings_open)
                 .tooltip("Settings  (Ctrl ,)")
                 .on_click(cx.listener(|this, _, _, cx| {
-                    this.page = if this.page == Page::Settings { Page::Library } else { Page::Settings };
+                    this.page = if this.page == Page::Settings {
+                        Page::Library
+                    } else {
+                        Page::Settings
+                    };
                     cx.notify();
                 })),
         )

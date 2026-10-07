@@ -3,7 +3,7 @@
 use crate::app::Saber;
 use crate::assets::Icon;
 use crate::theme::{MONO, theme};
-use crate::ui::card::card;
+use crate::ui::card::{CardState, card};
 use crate::ui::hero::hero;
 use crate::ui::widgets::{glow, kbd, segmented};
 use crate::ui::{GRID_GAP, PAGE_PAD, motion};
@@ -42,7 +42,15 @@ pub fn shelf(app: &Saber, cx: &mut Context<Saber>) -> AnyElement {
     let cards: Vec<_> = games
         .iter()
         .enumerate()
-        .map(|(i, g)| card(g, i, selected.as_deref() == Some(g.id.as_str()), app.is_running(&g.id), cx))
+        .map(|(i, g)| {
+            let state = CardState {
+                selected: selected.as_deref() == Some(g.id.as_str()),
+                running: app.is_running(&g.id),
+                show_playtime: app.settings.show_playtime,
+                epoch: app.shelf_epoch,
+            };
+            card(g, i, state, cx)
+        })
         .collect();
 
     let title = if searching {
@@ -106,7 +114,10 @@ pub fn shelf(app: &Saber, cx: &mut Context<Saber>) -> AnyElement {
                                         .font_family(MONO)
                                         .text_size(px(12.))
                                         .text_color(c.faint)
-                                        .child(format!("{count} {}", if count == 1 { "game" } else { "games" })),
+                                        .child(format!(
+                                            "{count} {}",
+                                            if count == 1 { "game" } else { "games" }
+                                        )),
                                 ),
                         )
                         .when(app.view != View::Recent, |d| d.child(sort_picker)),
@@ -128,11 +139,20 @@ pub fn shelf(app: &Saber, cx: &mut Context<Saber>) -> AnyElement {
 fn no_results(app: &Saber, cx: &App) -> impl IntoElement {
     let c = theme(cx).colors;
     let (title, hint) = if !app.query.trim().is_empty() {
-        ("Nothing matches that", "Try a shorter search, or press Esc to clear it.")
+        (
+            "Nothing matches that",
+            "Try a shorter search, or press Esc to clear it.",
+        )
     } else {
         match app.view {
-            View::Favorites => ("No favorites yet", "Press F on any game, or use the star in its banner."),
-            View::Recent => ("Nothing played yet", "Games you launch from Saber show up here."),
+            View::Favorites => (
+                "No favorites yet",
+                "Press F on any game, or use the star in its banner.",
+            ),
+            View::Recent => (
+                "Nothing played yet",
+                "Games you launch from Saber show up here.",
+            ),
             _ => ("Empty shelf", "Nothing to show here."),
         }
     };

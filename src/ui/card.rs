@@ -24,8 +24,22 @@ pub fn poster_art(game: &Game, t: &SaberTheme, title_size: Pixels) -> AnyElement
     }
 }
 
+/// Just the generated gradient, for places that show the title themselves.
+pub fn poster_backdrop(game: &Game) -> Div {
+    let (a, b) = game.poster_hues();
+    div().size_full().bg(linear_gradient(
+        160.,
+        linear_color_stop(hsla(a / 360., 0.42, 0.34, 1.), 0.),
+        linear_color_stop(hsla(b / 360., 0.5, 0.09, 1.), 1.),
+    ))
+}
+
 /// A deterministic two-tone poster with the game's initials and title.
-fn generated_poster(game: &Game, t: &SaberTheme, title_size: Pixels) -> std::rc::Rc<dyn Fn() -> AnyElement> {
+fn generated_poster(
+    game: &Game,
+    t: &SaberTheme,
+    title_size: Pixels,
+) -> std::rc::Rc<dyn Fn() -> AnyElement> {
     let (a, b) = game.poster_hues();
     let initials = game.initials();
     let title = game.title.clone();
@@ -68,7 +82,19 @@ fn generated_poster(game: &Game, t: &SaberTheme, title_size: Pixels) -> std::rc:
     })
 }
 
-pub fn card(game: &Game, index: usize, selected: bool, running: bool, cx: &mut Context<Saber>) -> impl IntoElement + use<> {
+pub struct CardState {
+    pub selected: bool,
+    pub running: bool,
+    pub show_playtime: bool,
+    pub epoch: usize,
+}
+
+pub fn card(
+    game: &Game,
+    index: usize,
+    state: CardState,
+    cx: &mut Context<Saber>,
+) -> impl IntoElement + use<> {
     let t = *theme(cx);
     let c = t.colors;
     let id = game.id.clone();
@@ -76,8 +102,12 @@ pub fn card(game: &Game, index: usize, selected: bool, running: bool, cx: &mut C
     let w = t.card_width;
     let h = t.card_height();
     let has_cover = game.cover.is_some();
-    let show_playtime = cx.entity().read(cx).settings.show_playtime;
-    let epoch = cx.entity().read(cx).shelf_epoch;
+    let CardState {
+        selected,
+        running,
+        show_playtime,
+        epoch,
+    } = state;
 
     let caption = if show_playtime && game.playtime_secs > 0 {
         format!("{} played", format::playtime(game.playtime_secs))
@@ -108,7 +138,10 @@ pub fn card(game: &Game, index: usize, selected: bool, running: bool, cx: &mut C
         } else {
             vec![]
         })
-        .hover(|d| d.border_color(if selected { c.accent } else { c.line_strong }).shadow(vec![lift_shadow(c.dark)]))
+        .hover(|d| {
+            d.border_color(if selected { c.accent } else { c.line_strong })
+                .shadow(vec![lift_shadow(c.dark)])
+        })
         .on_click(cx.listener(move |this, ev: &ClickEvent, window, cx| {
             if ev.click_count() >= 2 {
                 this.play(&play_id, window, cx);
@@ -142,7 +175,9 @@ pub fn card(game: &Game, index: usize, selected: bool, running: bool, cx: &mut C
                     linear_color_stop(hsla(0., 0., 0., 0.), 0.),
                     linear_color_stop(hsla(0., 0., 0., 0.85), 1.),
                 ))
-                .when(has_cover, |d| d.opacity(0.).group_hover(group.clone(), |s| s.opacity(1.)))
+                .when(has_cover, |d| {
+                    d.opacity(0.).group_hover(group.clone(), |s| s.opacity(1.))
+                })
                 .when(!has_cover, |d| d.opacity(0.))
                 .child(
                     div()

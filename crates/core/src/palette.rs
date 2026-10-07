@@ -18,7 +18,14 @@ pub struct Palette {
 
 const DARK_TEXT: (u32, u32, u32, u32) = (0xf2efe9, 0x8b8a90, 0x55545a, 0xffffff12);
 
-const fn dark(id: &'static str, name: &'static str, bg: u32, surface: u32, surface_2: u32, accent: u32) -> Palette {
+const fn dark(
+    id: &'static str,
+    name: &'static str,
+    bg: u32,
+    surface: u32,
+    surface_2: u32,
+    accent: u32,
+) -> Palette {
     Palette {
         id,
         name,

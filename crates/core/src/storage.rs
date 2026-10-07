@@ -19,7 +19,11 @@ pub fn data_dir() -> PathBuf {
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))
     };
-    let name = if cfg!(any(windows, target_os = "macos")) { "Saber" } else { "saber" };
+    let name = if cfg!(any(windows, target_os = "macos")) {
+        "Saber"
+    } else {
+        "saber"
+    };
     base.unwrap_or_else(|| PathBuf::from(".")).join(name)
 }
 
