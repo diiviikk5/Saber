@@ -380,3 +380,34 @@ kbd {
   font-size: 12.5px;
   font-weight: 500;
 }
+
+.shelf {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(90% 60% at 70% 20%, var(--a), transparent 70%),
+    linear-gradient(170deg, var(--a) -40%, var(--b) 75%);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease;
+}
+
+.poster span {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  font: 400 15px/1.1 var(--serif);
+}
+
+.poster:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
