@@ -30,4 +30,46 @@ impl Library {
         let index = self.games.iter().position(|g| g.id == id)?;
         Some(self.games.remove(index))
     }
+
+    /// Adds a game, or refreshes an existing import in place.
+    ///
+    /// Scanners call this repeatedly. Store-provided fields (title, launch
+    /// target, art) are updated; everything the user owns — favorites, tags,
+    /// hidden state and play stats — is left alone. Returns `true` when the
+    /// game was new.
+    pub fn upsert(&mut self, incoming: Game) -> bool {
+        match self.get_mut(&incoming.id) {
+            Some(existing) => {
+                existing.title = incoming.title;
+                existing.launch = incoming.launch;
+                if incoming.cover.is_some() {
+                    existing.cover = incoming.cover;
+                }
+                if incoming.hero.is_some() {
+                    existing.hero = incoming.hero;
+                }
+                false
+            }
+            None => {
+                self.games.push(incoming);
+                true
+            }
+        }
+    }
+
+    /// Records a finished play session.
+    pub fn record_session(&mut self, id: &str, started_at: u64, secs: u64) {
+        if let Some(game) = self.get_mut(id) {
+            game.playtime_secs += secs;
+            game.last_played = Some(started_at);
+        }
+    }
+
+    /// Records a launch we can't time (e.g. handed off to Steam).
+    pub fn record_launch(&mut self, id: &str, at: u64) {
+        if let Some(game) = self.get_mut(id) {
+            game.launch_count += 1;
+            game.last_played = Some(at);
+        }
+    }
 }
