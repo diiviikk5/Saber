@@ -131,3 +131,85 @@ fn parse_manifest(text: &str, steamapps: &Path) -> Option<Manifest> {
     }
     Some(Manifest { app_id, name, install_dir })
 }
+
+/// Finds Steam's cached library art for an app. Newer clients keep it in
+/// `librarycache/<id>/` (sometimes one hashed folder deeper); older ones
+/// use flat `librarycache/<id>_<name>.jpg` files.
+fn cached_art(root: &Path, app_id: u32, name: &str) -> Option<PathBuf> {
+    let cache = root.join("appcache").join("librarycache");
+    let flat = cache.join(format!("{app_id}_{name}"));
+    if flat.is_file() {
+        return Some(flat);
+    }
+    let dir = cache.join(app_id.to_string());
+    let direct = dir.join(name);
+    if direct.is_file() {
+        return Some(direct);
+    }
+    std::fs::read_dir(&dir)
+        .ok()?
+        .flatten()
+        .map(|e| e.path().join(name))
+        .find(|p| p.is_file())
+}
+
+impl Manifest {
+    pub fn into_game(self, root: &Path) -> Game {
+        let mut game = Game::new(
+            self.name,
+            Source::Steam { app_id: self.app_id },
+            Launch::Uri {
+                uri: format!("steam://rungameid/{}", self.app_id),
+            },
+        );
+        game.cover = cached_art(root, self.app_id, "library_600x900.jpg");
+        game.hero = cached_art(root, self.app_id, "library_hero.jpg")
+            .or_else(|| cached_art(root, self.app_id, "header.jpg"));
+        game
+    }
+}
+
+/// Every installed Steam game on this machine.
+pub fn scan() -> Vec<Game> {
+    let Some(root) = steam_root() else {
+        return Vec::new();
+    };
+    let mut games = Vec::new();
+    for folder in library_folders(&root) {
+        let Ok(entries) = std::fs::read_dir(&folder) else { continue };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let is_manifest = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.starts_with("appmanifest_") && n.ends_with(".acf"));
+            if is_manifest && let Some(m) = read_manifest(&path) {
+                games.push(m.into_game(&root));
+            }
+        }
+    }
+    games.sort_by(|a, b| a.title.cmp(&b.title));
+    games.dedup_by(|a, b| a.id == b.id);
+    games
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn manifest_resolves_install_dir() {
+        let text = r#""AppState" { "appid" "291550" "name" "Brawlhalla" "installdir" "Brawlhalla" }"#;
+        let m = parse_manifest(text, Path::new("/lib/steamapps")).unwrap();
+        assert_eq!(m.app_id, 291550);
+        assert_eq!(m.install_dir, Path::new("/lib/steamapps/common/Brawlhalla"));
+    }
+
+    #[test]
+    fn skips_runtimes_and_redistributables() {
+        let redist = r#""AppState" { "appid" "228980" "name" "Steamworks Common Redistributables" "installdir" "x" }"#;
+        let proton = r#""AppState" { "appid" "2348590" "name" "Proton 8.0" "installdir" "x" }"#;
+        assert!(parse_manifest(redist, Path::new("/s")).is_none());
+        assert!(parse_manifest(proton, Path::new("/s")).is_none());
+    }
+}
