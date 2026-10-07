@@ -3,3 +3,4 @@
 pub mod format;
 pub mod game;
 pub mod library;
+pub mod storage;
