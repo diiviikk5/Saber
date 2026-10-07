@@ -257,7 +257,6 @@ kbd {
 .app {
   display: grid;
   grid-template-columns: 190px 1fr;
-  min-height: 460px;
   text-align: left;
 }
 
