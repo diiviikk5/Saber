@@ -79,3 +79,43 @@ fn scan_dir(dir: &Path) -> Vec<Game> {
     games.sort_by(|a, b| a.title.cmp(&b.title));
     games
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn item(app: &str, main: &str, categories: &str, incomplete: bool) -> String {
+        format!(
+            r#"{{
+                "DisplayName": "Fall Guys",
+                "AppName": "{app}",
+                "MainGameAppName": "{main}",
+                "CatalogNamespace": "ns",
+                "CatalogItemId": "item",
+                "InstallLocation": "D:/Games/FallGuys",
+                "AppCategories": [{categories}],
+                "bIsIncompleteInstall": {incomplete}
+            }}"#
+        )
+    }
+
+    #[test]
+    fn imports_games_with_launcher_uri() {
+        let game = parse_item(&item("fg", "fg", r#""games","applications""#, false)).unwrap();
+        assert_eq!(game.id, "epic-fg");
+        assert_eq!(
+            game.launch,
+            Launch::Uri {
+                uri: "com.epicgames.launcher://apps/ns%3Aitem%3Afg?action=launch&silent=true".into()
+            }
+        );
+        assert_eq!(game.install_dir, Some(PathBuf::from("D:/Games/FallGuys")));
+    }
+
+    #[test]
+    fn skips_dlc_tools_and_partial_installs() {
+        assert!(parse_item(&item("dlc", "fg", r#""games""#, false)).is_none());
+        assert!(parse_item(&item("ue", "ue", r#""engines""#, false)).is_none());
+        assert!(parse_item(&item("fg", "fg", r#""games""#, true)).is_none());
+    }
+}
