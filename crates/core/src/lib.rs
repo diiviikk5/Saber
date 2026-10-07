@@ -5,3 +5,4 @@ pub mod game;
 pub mod library;
 pub mod storage;
 pub mod palette;
+pub mod settings;
