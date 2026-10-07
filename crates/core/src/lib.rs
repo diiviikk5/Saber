@@ -7,3 +7,4 @@ pub mod storage;
 pub mod palette;
 pub mod settings;
 pub mod scan;
+pub mod launch;
