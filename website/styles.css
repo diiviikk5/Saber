@@ -602,3 +602,59 @@ kbd {
   font: 12px/1 var(--mono);
   color: var(--faint);
 }
+
+/* small screens */
+
+@media (max-width: 860px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .side {
+    display: none;
+  }
+
+  .shelf {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+  }
+
+  .features article + article {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding-top: 72px;
+  }
+
+  .nav-links a:not(:last-child) {
+    display: none;
+  }
+
+  .feature {
+    height: 180px;
+  }
+
+  .feature-info strong {
+    font-size: 26px;
+  }
+
+  .search kbd {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
