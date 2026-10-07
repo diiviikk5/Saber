@@ -73,3 +73,50 @@ impl Library {
         }
     }
 }
+
+/// Which slice of the library the sidebar is showing.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum View {
+    #[default]
+    All,
+    Favorites,
+    Recent,
+    Source(&'static str),
+    Hidden,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Sort {
+    #[default]
+    Recent,
+    Title,
+    Playtime,
+    Added,
+}
+
+impl Sort {
+    pub const ALL: [Sort; 4] = [Sort::Recent, Sort::Title, Sort::Playtime, Sort::Added];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Sort::Recent => "Recently played",
+            Sort::Title => "Title",
+            Sort::Playtime => "Most played",
+            Sort::Added => "Recently added",
+        }
+    }
+}
+
+impl View {
+    fn admits(&self, game: &Game) -> bool {
+        match self {
+            View::Hidden => game.hidden,
+            _ if game.hidden => false,
+            View::All => true,
+            View::Favorites => game.favorite,
+            View::Recent => game.last_played.is_some(),
+            View::Source(label) => game.source.label() == *label,
+        }
+    }
+}
