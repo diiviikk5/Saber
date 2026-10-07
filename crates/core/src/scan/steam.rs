@@ -78,3 +78,56 @@ fn candidates() -> Vec<PathBuf> {
         home.join(".var/app/com.valvesoftware.Steam/.local/share/Steam"),
     ]
 }
+
+/// Every `steamapps` directory Steam knows about, the main one first.
+pub fn library_folders(root: &Path) -> Vec<PathBuf> {
+    let mut folders = vec![root.join("steamapps")];
+    let file = root.join("steamapps").join("libraryfolders.vdf");
+    if let Ok(text) = std::fs::read_to_string(&file) {
+        let doc = vdf::parse(&text);
+        if let Some(lib) = doc.get("libraryfolders") {
+            for (_, entry) in lib.entries() {
+                if let Some(path) = entry.str("path") {
+                    let apps = PathBuf::from(path).join("steamapps");
+                    if !folders.iter().any(|f| same_dir(f, &apps)) {
+                        folders.push(apps);
+                    }
+                }
+            }
+        }
+    }
+    folders.retain(|f| f.is_dir());
+    folders
+}
+
+fn same_dir(a: &Path, b: &Path) -> bool {
+    match (a.canonicalize(), b.canonicalize()) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => a.to_string_lossy().eq_ignore_ascii_case(&b.to_string_lossy()),
+    }
+}
+
+/// An installed app read from `appmanifest_<id>.acf`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Manifest {
+    pub app_id: u32,
+    pub name: String,
+    pub install_dir: PathBuf,
+}
+
+pub fn read_manifest(path: &Path) -> Option<Manifest> {
+    let text = std::fs::read_to_string(path).ok()?;
+    parse_manifest(&text, path.parent()?)
+}
+
+fn parse_manifest(text: &str, steamapps: &Path) -> Option<Manifest> {
+    let doc = vdf::parse(text);
+    let app = doc.get("AppState")?;
+    let app_id = app.str("appid")?.parse().ok()?;
+    let name = app.str("name")?.trim().to_string();
+    let install_dir = steamapps.join("common").join(app.str("installdir")?);
+    if name.is_empty() || is_tool(app_id, &name) {
+        return None;
+    }
+    Some(Manifest { app_id, name, install_dir })
+}
