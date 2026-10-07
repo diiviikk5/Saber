@@ -2,3 +2,4 @@
 
 pub mod vdf;
 pub mod steam;
+pub mod epic;
