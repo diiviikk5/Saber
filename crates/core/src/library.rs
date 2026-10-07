@@ -170,15 +170,20 @@ impl Library {
         games
     }
 
-    /// The game to feature in the hero banner: the most recently played,
-    /// otherwise the newest addition.
+    /// The game to feature in the hero banner: the most recently played;
+    /// failing that, the newest game that has wide art to show off; failing
+    /// that, simply the newest.
     pub fn featured(&self) -> Option<&Game> {
-        let visible = self.games.iter().filter(|g| !g.hidden);
-        visible
-            .clone()
+        let visible = || self.games.iter().filter(|g| !g.hidden);
+        visible()
             .filter(|g| g.last_played.is_some())
             .max_by_key(|g| g.last_played)
-            .or_else(|| visible.max_by_key(|g| g.added_at))
+            .or_else(|| {
+                visible()
+                    .filter(|g| g.hero.is_some())
+                    .max_by(|a, b| a.added_at.cmp(&b.added_at).then(b.title.cmp(&a.title)))
+            })
+            .or_else(|| visible().max_by_key(|g| g.added_at))
     }
 
     /// Count of visible games per source label, for the sidebar.
@@ -271,6 +276,16 @@ mod tests {
             lib.query(&View::All, "nothing here", Sort::Title)
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn featured_falls_back_to_games_with_art() {
+        let mut lib = sample();
+        for g in &mut lib.games {
+            g.last_played = None;
+        }
+        lib.games[1].hero = Some("hero.jpg".into());
+        assert_eq!(lib.featured().unwrap().title, "ashen crown");
     }
 
     #[test]
