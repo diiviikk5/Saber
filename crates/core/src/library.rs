@@ -179,3 +179,103 @@ impl Library {
         self.games.iter().filter(|g| view.admits(g)).count()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::game::{Launch, Source};
+
+    fn game(title: &str, source: Source) -> Game {
+        let mut g = Game::new(
+            title,
+            source,
+            Launch::Uri {
+                uri: "steam://rungameid/1".into(),
+            },
+        );
+        g.added_at = 100;
+        g
+    }
+
+    fn sample() -> Library {
+        let mut lib = Library::default();
+        let mut a = game("Hollow Tides", Source::Steam { app_id: 1 });
+        a.last_played = Some(500);
+        a.playtime_secs = 10;
+        let mut b = game("ashen crown", Source::Epic { app_name: "ash".into() });
+        b.favorite = true;
+        b.playtime_secs = 99;
+        b.tags = vec!["souls".into()];
+        let mut c = game("Neon Drift", Source::Manual);
+        c.last_played = Some(900);
+        let mut d = game("Old Thing", Source::Manual);
+        d.hidden = true;
+        lib.games = vec![a, b, c, d];
+        lib
+    }
+
+    fn titles(games: Vec<&Game>) -> Vec<&str> {
+        games.into_iter().map(|g| g.title.as_str()).collect()
+    }
+
+    #[test]
+    fn views_filter_and_hide() {
+        let lib = sample();
+        assert_eq!(lib.count(&View::All), 3);
+        assert_eq!(lib.count(&View::Favorites), 1);
+        assert_eq!(lib.count(&View::Source("Manual")), 1);
+        assert_eq!(lib.count(&View::Hidden), 1);
+        assert_eq!(
+            titles(lib.query(&View::Recent, "", Sort::Title)),
+            ["Neon Drift", "Hollow Tides"]
+        );
+    }
+
+    #[test]
+    fn sorting() {
+        let lib = sample();
+        assert_eq!(
+            titles(lib.query(&View::All, "", Sort::Title)),
+            ["ashen crown", "Hollow Tides", "Neon Drift"]
+        );
+        assert_eq!(
+            titles(lib.query(&View::All, "", Sort::Playtime))[0],
+            "ashen crown"
+        );
+    }
+
+    #[test]
+    fn search_terms_match_title_tags_and_source() {
+        let lib = sample();
+        assert_eq!(titles(lib.query(&View::All, "SOULS", Sort::Title)), ["ashen crown"]);
+        assert_eq!(titles(lib.query(&View::All, "neon manual", Sort::Title)), ["Neon Drift"]);
+        assert!(lib.query(&View::All, "nothing here", Sort::Title).is_empty());
+    }
+
+    #[test]
+    fn featured_prefers_last_played() {
+        assert_eq!(sample().featured().unwrap().title, "Neon Drift");
+    }
+
+    #[test]
+    fn upsert_keeps_user_data() {
+        let mut lib = sample();
+        let mut fresh = game("Hollow Tides: Remastered", Source::Steam { app_id: 1 });
+        fresh.cover = Some("cover.jpg".into());
+        assert!(!lib.upsert(fresh));
+        let g = lib.get("steam-1").unwrap();
+        assert_eq!(g.title, "Hollow Tides: Remastered");
+        assert_eq!(g.playtime_secs, 10);
+        assert!(g.cover.is_some());
+        assert!(lib.upsert(game("New", Source::Steam { app_id: 2 })));
+    }
+
+    #[test]
+    fn sessions_accumulate() {
+        let mut lib = sample();
+        lib.record_launch("steam-1", 1000);
+        lib.record_session("steam-1", 1000, 50);
+        let g = lib.get("steam-1").unwrap();
+        assert_eq!((g.playtime_secs, g.launch_count, g.last_played), (60, 1, Some(1000)));
+    }
+}
