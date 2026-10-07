@@ -126,3 +126,57 @@ h1 em {
   font: 12px/1 var(--mono);
   color: var(--faint);
 }
+
+/* buttons */
+
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button.primary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.button.primary:hover {
+  background: #fff;
+}
+
+.button.ghost {
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.button.ghost:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.soon {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 10px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
