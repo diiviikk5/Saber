@@ -162,6 +162,7 @@ impl Manifest {
                 uri: format!("steam://rungameid/{}", self.app_id),
             },
         );
+        game.install_dir = Some(self.install_dir);
         game.cover = cached_art(root, self.app_id, "library_600x900.jpg");
         game.hero = cached_art(root, self.app_id, "library_hero.jpg")
             .or_else(|| cached_art(root, self.app_id, "header.jpg"));

@@ -52,6 +52,9 @@ pub struct Game {
     /// Wide hero art shown in the featured banner.
     #[serde(default)]
     pub hero: Option<PathBuf>,
+    /// Where the game's files live, for "open folder".
+    #[serde(default)]
+    pub install_dir: Option<PathBuf>,
     #[serde(default)]
     pub favorite: bool,
     #[serde(default)]
@@ -78,6 +81,7 @@ impl Game {
             launch,
             cover: None,
             hero: None,
+            install_dir: None,
             favorite: false,
             hidden: false,
             tags: Vec::new(),

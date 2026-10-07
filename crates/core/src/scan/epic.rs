@@ -56,7 +56,7 @@ fn parse_item(text: &str) -> Option<Game> {
         Launch::Uri { uri },
     );
     if !item.install_location.is_empty() {
-        game.tags = Vec::new();
+        game.install_dir = Some(PathBuf::from(item.install_location));
     }
     Some(game)
 }
