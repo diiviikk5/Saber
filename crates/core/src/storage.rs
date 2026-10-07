@@ -58,3 +58,59 @@ pub fn save<T: Serialize>(path: &Path, value: &T) -> io::Result<()> {
     std::fs::write(&tmp, json)?;
     std::fs::rename(&tmp, path)
 }
+
+/// Like [`load`], but a corrupt file is moved aside to `<name>.broken`
+/// instead of being silently overwritten by the next save.
+pub fn load_or_recover<T: DeserializeOwned + Default>(path: &Path) -> T {
+    match load(path) {
+        Ok(value) => value,
+        Err(err) => {
+            eprintln!("saber: could not read {}: {err}", path.display());
+            let _ = std::fs::rename(path, path.with_extension("json.broken"));
+            T::default()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::library::Library;
+
+    fn temp(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("saber-test-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir.join("library.json")
+    }
+
+    #[test]
+    fn missing_file_is_default() {
+        let lib: Library = load(&temp("missing")).unwrap();
+        assert!(lib.is_empty());
+    }
+
+    #[test]
+    fn round_trips() {
+        let path = temp("roundtrip");
+        let mut lib = Library::default();
+        lib.upsert(crate::game::Game::new(
+            "Neon Drift",
+            crate::game::Source::Manual,
+            crate::game::Launch::Uri { uri: "x".into() },
+        ));
+        save(&path, &lib).unwrap();
+        let back: Library = load(&path).unwrap();
+        assert_eq!(back.games, lib.games);
+        assert!(!path.with_extension("json.tmp").exists());
+    }
+
+    #[test]
+    fn corrupt_file_is_set_aside() {
+        let path = temp("corrupt");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"{ not json").unwrap();
+        let lib: Library = load_or_recover(&path);
+        assert!(lib.is_empty());
+        assert!(path.with_extension("json.broken").exists());
+    }
+}
