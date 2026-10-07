@@ -410,3 +410,41 @@ kbd {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--accent) 60%, transparent);
 }
+
+/* features */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  max-width: var(--max);
+  margin: 0 auto 140px;
+  padding: 0 24px;
+}
+
+.features article {
+  padding: 32px 28px 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.features article + article {
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+}
+
+.num {
+  font: 12px/1 var(--mono);
+  color: var(--accent);
+}
+
+.features h2 {
+  margin: 18px 0 10px;
+  font: 400 30px/1.1 var(--serif);
+  letter-spacing: -0.01em;
+}
+
+.features p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14.5px;
+}
