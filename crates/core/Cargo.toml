@@ -1,0 +1,8 @@
+[package]
+name = "saber-core"
+version = "0.1.0"
+edition = "2024"
+description = "Library, storage, scanning and launching for Saber"
+license = "MIT"
+
+[dependencies]

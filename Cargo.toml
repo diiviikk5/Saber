@@ -1,3 +1,6 @@
+[workspace]
+members = ["crates/core"]
+
 [package]
 name = "saber"
 version = "0.1.0"
@@ -8,3 +11,4 @@ repository = "https://github.com/diiviikk5/Saber"
 
 [dependencies]
 gpui-kit = "0.7.1"
+saber-core = { path = "crates/core" }
