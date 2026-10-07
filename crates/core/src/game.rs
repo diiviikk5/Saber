@@ -38,3 +38,72 @@ pub enum Launch {
     /// Hand a URI to the OS, e.g. `steam://rungameid/570`.
     Uri { uri: String },
 }
+
+/// A game in the library.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Game {
+    pub id: String,
+    pub title: String,
+    pub source: Source,
+    pub launch: Launch,
+    /// Portrait cover (2:3). Falls back to a generated poster when missing.
+    #[serde(default)]
+    pub cover: Option<PathBuf>,
+    /// Wide hero art shown in the featured banner.
+    #[serde(default)]
+    pub hero: Option<PathBuf>,
+    #[serde(default)]
+    pub favorite: bool,
+    #[serde(default)]
+    pub hidden: bool,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
+    pub playtime_secs: u64,
+    #[serde(default)]
+    pub launch_count: u32,
+    #[serde(default)]
+    pub last_played: Option<u64>,
+    pub added_at: u64,
+}
+
+impl Game {
+    pub fn new(title: impl Into<String>, source: Source, launch: Launch) -> Self {
+        let title = title.into();
+        let added_at = crate::format::now();
+        Self {
+            id: make_id(&title, &source, added_at),
+            title,
+            source,
+            launch,
+            cover: None,
+            hero: None,
+            favorite: false,
+            hidden: false,
+            tags: Vec::new(),
+            playtime_secs: 0,
+            launch_count: 0,
+            last_played: None,
+            added_at,
+        }
+    }
+}
+
+/// Stable ids for imported games, unique-enough ids for manual ones.
+fn make_id(title: &str, source: &Source, added_at: u64) -> String {
+    match source {
+        Source::Steam { app_id } => format!("steam-{app_id}"),
+        Source::Epic { app_name } => format!("epic-{app_name}"),
+        Source::Manual => format!("manual-{:x}-{:x}", added_at, hash(title)),
+    }
+}
+
+/// FNV-1a. Tiny, deterministic, good enough for ids and poster colors.
+pub fn hash(s: &str) -> u64 {
+    let mut h: u64 = 0xcbf29ce484222325;
+    for b in s.bytes() {
+        h ^= b as u64;
+        h = h.wrapping_mul(0x100000001b3);
+    }
+    h
+}
