@@ -111,3 +111,24 @@ pub fn hash(s: &str) -> u64 {
     }
     h
 }
+
+impl Game {
+    /// Two hues (0..360) picked from the title, used to paint a poster for
+    /// games without cover art. The same title always gets the same poster.
+    pub fn poster_hues(&self) -> (f32, f32) {
+        let h = hash(&self.title);
+        let a = (h % 360) as f32;
+        let b = (a + 25. + ((h >> 16) % 50) as f32) % 360.;
+        (a, b)
+    }
+
+    /// Up to two letters for the generated poster: `Hollow Tides` → `HT`.
+    pub fn initials(&self) -> String {
+        self.title
+            .split_whitespace()
+            .filter_map(|w| w.chars().find(|c| c.is_alphanumeric()))
+            .take(2)
+            .flat_map(char::to_uppercase)
+            .collect()
+    }
+}
