@@ -21,6 +21,35 @@ pub struct Settings {
     pub minimize_on_launch: bool,
     /// Look for new Steam/Epic installs at startup.
     pub scan_on_start: bool,
+    /// Set big titles in a serif face instead of the UI sans.
+    pub serif_titles: bool,
+    /// Tint the whole window with the selected game's art.
+    pub ambient_art: bool,
+    pub material: Material,
+}
+
+/// What sits behind the window.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Material {
+    #[default]
+    Solid,
+    /// Windows 11 Mica.
+    Mica,
+    /// Frosted blur of whatever is behind the window.
+    Acrylic,
+}
+
+impl Material {
+    pub const ALL: [Material; 3] = [Material::Solid, Material::Mica, Material::Acrylic];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Material::Solid => "Solid",
+            Material::Mica => "Mica",
+            Material::Acrylic => "Acrylic",
+        }
+    }
 }
 
 impl Default for Settings {
@@ -35,6 +64,9 @@ impl Default for Settings {
             sort: Sort::Recent,
             minimize_on_launch: true,
             scan_on_start: true,
+            serif_titles: true,
+            ambient_art: true,
+            material: Material::Solid,
         }
     }
 }
