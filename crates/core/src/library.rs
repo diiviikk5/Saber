@@ -1,6 +1,6 @@
 //! The collection of games and the queries the UI runs against it.
 
-use crate::game::{Game, Source};
+use crate::game::Game;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
