@@ -9,3 +9,4 @@ pub mod palette;
 pub mod scan;
 pub mod settings;
 pub mod storage;
+pub mod art;
