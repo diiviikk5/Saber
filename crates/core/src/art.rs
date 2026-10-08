@@ -100,33 +100,55 @@ fn download(url: &str, dest: &Path) -> bool {
     ok && std::fs::rename(&tmp, dest).is_ok()
 }
 
-/// Downloads cover and hero art for a game into `dir`. Returns what it got.
-pub fn fetch(game: &Game, dir: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
+/// Art downloaded for a game; `None` where it already had some or the
+/// store had none.
+#[derive(Debug, Default)]
+pub struct Fetched {
+    pub cover: Option<PathBuf>,
+    pub hero: Option<PathBuf>,
+    pub logo: Option<PathBuf>,
+}
+
+impl Fetched {
+    pub fn is_empty(&self) -> bool {
+        self.cover.is_none() && self.hero.is_none() && self.logo.is_none()
+    }
+}
+
+/// Downloads whatever cover, hero and logo art a game is missing into `dir`.
+pub fn fetch(game: &Game, dir: &Path) -> Fetched {
     let app_id = match &game.source {
         crate::game::Source::Steam { app_id } => Some(*app_id),
         _ => find_steam_app(&game.title),
     };
     let Some(app_id) = app_id else {
-        return (None, None);
+        return Fetched::default();
     };
     if std::fs::create_dir_all(dir).is_err() {
-        return (None, None);
+        return Fetched::default();
     }
     let get = |file: &str, suffix: &str| {
-        let dest = dir.join(format!("{}-{suffix}.jpg", game.id));
+        let ext = file.rsplit('.').next().unwrap_or("jpg");
+        let dest = dir.join(format!("{}-{suffix}.{ext}", game.id));
         download(&format!("{CDN}/{app_id}/{file}"), &dest).then_some(dest)
     };
-    let cover = if game.cover.is_none() {
-        get("library_600x900.jpg", "cover")
-    } else {
-        None
-    };
-    let hero = if game.hero.is_none() {
-        get("library_hero.jpg", "hero").or_else(|| get("header.jpg", "hero"))
-    } else {
-        None
-    };
-    (cover, hero)
+    Fetched {
+        cover: game
+            .cover
+            .is_none()
+            .then(|| get("library_600x900.jpg", "cover"))
+            .flatten(),
+        hero: game
+            .hero
+            .is_none()
+            .then(|| get("library_hero.jpg", "hero").or_else(|| get("header.jpg", "hero")))
+            .flatten(),
+        logo: game
+            .logo
+            .is_none()
+            .then(|| get("logo.png", "logo"))
+            .flatten(),
+    }
 }
 
 #[cfg(test)]
