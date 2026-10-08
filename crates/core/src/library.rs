@@ -195,6 +195,100 @@ impl Library {
     }
 }
 
+/// Library-wide numbers for the home page.
+#[derive(Debug, Default)]
+pub struct Stats<'a> {
+    pub games: usize,
+    pub played: usize,
+    pub total_secs: u64,
+    pub launches: u32,
+    /// Most-played games, longest first.
+    pub top: Vec<&'a Game>,
+}
+
+impl Library {
+    fn visible(&self) -> impl Iterator<Item = &Game> {
+        self.games.iter().filter(|g| !g.hidden)
+    }
+
+    /// Played games, most recent first.
+    pub fn continue_playing(&self, n: usize) -> Vec<&Game> {
+        let mut games: Vec<&Game> = self.visible().filter(|g| g.last_played.is_some()).collect();
+        games.sort_by(|a, b| b.last_played.cmp(&a.last_played));
+        games.truncate(n);
+        games
+    }
+
+    /// Newest additions first.
+    pub fn recently_added(&self, n: usize) -> Vec<&Game> {
+        let mut games: Vec<&Game> = self.visible().collect();
+        games.sort_by(|a, b| b.added_at.cmp(&a.added_at).then(a.title.cmp(&b.title)));
+        games.truncate(n);
+        games
+    }
+
+    /// Games that have never been started, A–Z.
+    pub fn backlog(&self) -> Vec<&Game> {
+        let mut games: Vec<&Game> = self
+            .visible()
+            .filter(|g| g.last_played.is_none() && g.launch_count == 0)
+            .collect();
+        games.sort_by_key(|g| g.title.to_lowercase());
+        games
+    }
+
+    /// Games worth a big banner, best first: recently played, then
+    /// favorites, then the newest, preferring ones with wide art.
+    pub fn spotlight(&self, n: usize) -> Vec<&Game> {
+        let with_art = |g: &&Game| g.hero.is_some();
+        let mut favs: Vec<&Game> = self.visible().filter(|g| g.favorite).collect();
+        favs.sort_by_key(|g| g.title.to_lowercase());
+        let newest = self.recently_added(usize::MAX);
+
+        let ranked = self
+            .continue_playing(usize::MAX)
+            .into_iter()
+            .filter(with_art)
+            .chain(favs.into_iter().filter(with_art))
+            .chain(newest.iter().copied().filter(with_art))
+            .chain(newest.iter().copied());
+        let mut picks: Vec<&Game> = Vec::new();
+        for g in ranked {
+            if picks.len() == n {
+                break;
+            }
+            if !picks.iter().any(|p| p.id == g.id) {
+                picks.push(g);
+            }
+        }
+        picks
+    }
+
+    pub fn stats(&self) -> Stats<'_> {
+        let mut top: Vec<&Game> = self.visible().filter(|g| g.playtime_secs > 0).collect();
+        top.sort_by(|a, b| b.playtime_secs.cmp(&a.playtime_secs));
+        top.truncate(5);
+        Stats {
+            games: self.visible().count(),
+            played: self.visible().filter(|g| g.last_played.is_some()).count(),
+            total_secs: self.visible().map(|g| g.playtime_secs).sum(),
+            launches: self.visible().map(|g| g.launch_count).sum(),
+            top,
+        }
+    }
+
+    /// A game from the backlog, chosen by `seed`, for "surprise me".
+    pub fn surprise(&self, seed: u64) -> Option<&Game> {
+        let pool = self.backlog();
+        let pool = if pool.is_empty() {
+            self.visible().collect()
+        } else {
+            pool
+        };
+        (!pool.is_empty()).then(|| pool[(seed % pool.len() as u64) as usize])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -307,6 +401,26 @@ mod tests {
         assert_eq!(g.playtime_secs, 10);
         assert!(g.cover.is_some());
         assert!(lib.upsert(game("New", Source::Steam { app_id: 2 })));
+    }
+
+    #[test]
+    fn home_rows() {
+        let mut lib = sample();
+        lib.games[0].hero = Some("a.jpg".into());
+        assert_eq!(
+            titles(lib.continue_playing(5)),
+            ["Neon Drift", "Hollow Tides"]
+        );
+        assert_eq!(titles(lib.backlog()), ["ashen crown"]);
+        // Played games with wide art lead the spotlight; hidden ones never show.
+        let spot = titles(lib.spotlight(10));
+        assert_eq!(spot[0], "Hollow Tides");
+        assert_eq!(spot.len(), 3);
+        assert!(!spot.contains(&"Old Thing"));
+        let stats = lib.stats();
+        assert_eq!((stats.games, stats.played, stats.total_secs), (3, 2, 109));
+        assert_eq!(stats.top[0].title, "ashen crown");
+        assert_eq!(lib.surprise(7).unwrap().title, "ashen crown");
     }
 
     #[test]
