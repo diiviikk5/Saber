@@ -58,6 +58,9 @@ pub struct Game {
     /// Where the game's files live, for "open folder".
     #[serde(default)]
     pub install_dir: Option<PathBuf>,
+    /// Colors and a blurred backdrop distilled from the art.
+    #[serde(default)]
+    pub look: Option<crate::look::Look>,
     /// Set once Saber has asked the store for missing art, hit or miss, so
     /// it doesn't ask again on every start.
     #[serde(default)]
@@ -90,6 +93,7 @@ impl Game {
             hero: None,
             logo: None,
             install_dir: None,
+            look: None,
             art_checked: false,
             favorite: false,
             hidden: false,
