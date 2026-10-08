@@ -353,7 +353,10 @@ impl Saber {
             .games
             .iter()
             .filter(|g| only.as_ref().is_none_or(|id| *id == g.id))
-            .filter(|g| g.cover.is_none() || (only.is_some() && g.hero.is_none()))
+            .filter(|g| {
+                let missing = g.cover.is_none() || g.hero.is_none() || g.logo.is_none();
+                missing && (only.is_some() || !g.art_checked)
+            })
             .filter(|g| !self.art_tried.contains(&g.id))
             .cloned()
             .collect();
@@ -375,21 +378,18 @@ impl Saber {
             for game in todo {
                 let dir = dir.clone();
                 let lookup = game.clone();
-                let (cover, hero) = cx
+                let got = cx
                     .background_spawn(async move { saber_core::art::fetch(&lookup, &dir) })
                     .await;
-                if cover.is_none() && hero.is_none() {
-                    continue;
+                if !got.is_empty() {
+                    found += 1;
                 }
-                found += 1;
                 let updated = this.update(cx, |this, cx| {
                     if let Some(g) = this.library.get_mut(&game.id) {
-                        if cover.is_some() {
-                            g.cover = cover;
-                        }
-                        if hero.is_some() {
-                            g.hero = hero;
-                        }
+                        g.art_checked = true;
+                        g.cover = got.cover.or(g.cover.take());
+                        g.hero = got.hero.or(g.hero.take());
+                        g.logo = got.logo.or(g.logo.take());
                     }
                     this.save_library();
                     cx.notify();
