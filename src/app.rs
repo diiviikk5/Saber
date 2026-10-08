@@ -44,6 +44,9 @@ pub struct Saber {
     /// Bumped whenever the shelf contents change, to replay its entrance.
     pub shelf_epoch: usize,
     pub menu: Option<crate::ui::menu::MenuState>,
+    /// Games we've already looked up art for this run, hit or miss.
+    art_tried: std::collections::HashSet<String>,
+    pub fetching_art: bool,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -80,6 +83,8 @@ impl Saber {
             focus: cx.focus_handle(),
             shelf_epoch: 0,
             menu: None,
+            art_tried: Default::default(),
+            fetching_art: false,
             _subscriptions: vec![sub],
         };
         if scan_on_start || this.library.is_empty() {
@@ -315,11 +320,91 @@ impl Saber {
                 }
                 this.save_library();
                 this.shelf_epoch += 1;
+                if this.settings.fetch_art {
+                    this.fetch_missing_art(None, window, cx);
+                }
                 if announce || added > 0 {
                     let msg = match added {
                         0 => "Library is up to date".to_string(),
                         1 => "Found 1 new game".to_string(),
                         n => format!("Found {n} new games"),
+                    };
+                    window.push_notification(Notification::new().message(msg), cx);
+                }
+                cx.notify();
+            });
+        })
+        .detach();
+    }
+
+    /// Fills in missing covers in the background, one game at a time so
+    /// posters pop in as they arrive. `only` forces a retry for one game.
+    pub fn fetch_missing_art(
+        &mut self,
+        only: Option<String>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if let Some(id) = &only {
+            self.art_tried.remove(id);
+        }
+        let todo: Vec<Game> = self
+            .library
+            .games
+            .iter()
+            .filter(|g| only.as_ref().is_none_or(|id| *id == g.id))
+            .filter(|g| g.cover.is_none() || (only.is_some() && g.hero.is_none()))
+            .filter(|g| !self.art_tried.contains(&g.id))
+            .cloned()
+            .collect();
+        if todo.is_empty() || (self.fetching_art && only.is_none()) {
+            if only.is_some() && todo.is_empty() {
+                window.push_notification(
+                    Notification::new().message("This game already has art"),
+                    cx,
+                );
+            }
+            return;
+        }
+        self.art_tried.extend(todo.iter().map(|g| g.id.clone()));
+        self.fetching_art = true;
+        cx.notify();
+        cx.spawn_in(window, async move |this, cx| {
+            let dir = storage::art_dir();
+            let mut found = 0;
+            for game in todo {
+                let dir = dir.clone();
+                let lookup = game.clone();
+                let (cover, hero) = cx
+                    .background_spawn(async move { saber_core::art::fetch(&lookup, &dir) })
+                    .await;
+                if cover.is_none() && hero.is_none() {
+                    continue;
+                }
+                found += 1;
+                let updated = this.update(cx, |this, cx| {
+                    if let Some(g) = this.library.get_mut(&game.id) {
+                        if cover.is_some() {
+                            g.cover = cover;
+                        }
+                        if hero.is_some() {
+                            g.hero = hero;
+                        }
+                    }
+                    this.save_library();
+                    cx.notify();
+                });
+                if updated.is_err() {
+                    return;
+                }
+            }
+            let _ = this.update_in(cx, |this, window, cx| {
+                this.fetching_art = false;
+                if only.is_some() {
+                    let msg = if found > 0 {
+                        "Art updated"
+                    } else {
+                        "Couldn't find art for this one"
                     };
                     window.push_notification(Notification::new().message(msg), cx);
                 }
@@ -351,6 +436,9 @@ impl Saber {
                     this.selected = Some(id);
                 }
                 this.save_library();
+                if this.settings.fetch_art {
+                    this.fetch_missing_art(None, window, cx);
+                }
                 this.page = Page::Library;
                 this.shelf_epoch += 1;
                 window.push_notification(Notification::new().message("Added to your shelf"), cx);
