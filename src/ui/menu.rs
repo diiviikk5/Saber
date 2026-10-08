@@ -31,6 +31,7 @@ enum Entry {
     Play,
     Favorite,
     Cover,
+    FindArt,
     Folder,
     Hide,
     Remove,
@@ -62,6 +63,12 @@ pub fn menu(app: &Saber, cx: &mut Context<Saber>) -> Option<impl IntoElement + u
             Entry::Cover,
             Icon::Image,
             "Change cover…".to_string(),
+            false,
+        ),
+        (
+            Entry::FindArt,
+            Icon::Sparkles,
+            "Find art online".to_string(),
             false,
         ),
         (
@@ -138,6 +145,9 @@ pub fn menu(app: &Saber, cx: &mut Context<Saber>) -> Option<impl IntoElement + u
                                         Entry::Play => this.play(&id, window, cx),
                                         Entry::Favorite => this.toggle_favorite(&id, cx),
                                         Entry::Cover => this.change_cover(&id, window, cx),
+                                        Entry::FindArt => {
+                                            this.fetch_missing_art(Some(id.clone()), window, cx)
+                                        }
                                         Entry::Folder => this.open_folder(&id, cx),
                                         Entry::Hide => this.toggle_hidden(&id, window, cx),
                                         Entry::Remove => this.remove(&id, window, cx),
