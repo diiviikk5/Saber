@@ -78,7 +78,10 @@ fn encode(s: &str) -> String {
 
 /// Looks a title up on the Steam store.
 pub fn find_steam_app(title: &str) -> Option<u32> {
-    let out = curl().arg(format!("{SEARCH}{}", encode(title))).output().ok()?;
+    let out = curl()
+        .arg(format!("{SEARCH}{}", encode(title)))
+        .output()
+        .ok()?;
     if !out.status.success() {
         return None;
     }
@@ -103,7 +106,9 @@ pub fn fetch(game: &Game, dir: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
         crate::game::Source::Steam { app_id } => Some(*app_id),
         _ => find_steam_app(&game.title),
     };
-    let Some(app_id) = app_id else { return (None, None) };
+    let Some(app_id) = app_id else {
+        return (None, None);
+    };
     if std::fs::create_dir_all(dir).is_err() {
         return (None, None);
     }
@@ -111,7 +116,11 @@ pub fn fetch(game: &Game, dir: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
         let dest = dir.join(format!("{}-{suffix}.jpg", game.id));
         download(&format!("{CDN}/{app_id}/{file}"), &dest).then_some(dest)
     };
-    let cover = if game.cover.is_none() { get("library_600x900.jpg", "cover") } else { None };
+    let cover = if game.cover.is_none() {
+        get("library_600x900.jpg", "cover")
+    } else {
+        None
+    };
     let hero = if game.hero.is_none() {
         get("library_hero.jpg", "hero").or_else(|| get("header.jpg", "hero"))
     } else {
@@ -127,7 +136,10 @@ mod tests {
     fn items(names: &[(&str, u32)]) -> Vec<SearchItem> {
         names
             .iter()
-            .map(|(n, id)| SearchItem { name: n.to_string(), id: *id })
+            .map(|(n, id)| SearchItem {
+                name: n.to_string(),
+                id: *id,
+            })
             .collect()
     }
 
