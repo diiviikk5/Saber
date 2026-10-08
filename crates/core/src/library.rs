@@ -48,6 +48,9 @@ impl Library {
                 if incoming.hero.is_some() {
                     existing.hero = incoming.hero;
                 }
+                if incoming.logo.is_some() {
+                    existing.logo = incoming.logo;
+                }
                 if incoming.install_dir.is_some() {
                     existing.install_dir = incoming.install_dir;
                 }

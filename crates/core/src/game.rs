@@ -52,9 +52,16 @@ pub struct Game {
     /// Wide hero art shown in the featured banner.
     #[serde(default)]
     pub hero: Option<PathBuf>,
+    /// Transparent title logo, drawn over hero art instead of plain text.
+    #[serde(default)]
+    pub logo: Option<PathBuf>,
     /// Where the game's files live, for "open folder".
     #[serde(default)]
     pub install_dir: Option<PathBuf>,
+    /// Set once Saber has asked the store for missing art, hit or miss, so
+    /// it doesn't ask again on every start.
+    #[serde(default)]
+    pub art_checked: bool,
     #[serde(default)]
     pub favorite: bool,
     #[serde(default)]
@@ -81,7 +88,9 @@ impl Game {
             launch,
             cover: None,
             hero: None,
+            logo: None,
             install_dir: None,
+            art_checked: false,
             favorite: false,
             hidden: false,
             tags: Vec::new(),
