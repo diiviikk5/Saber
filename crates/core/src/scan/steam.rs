@@ -166,6 +166,7 @@ fn cached_art(root: &Path, app_id: u32, names: &[&str]) -> Option<PathBuf> {
 
 const COVER_ART: [&str; 2] = ["library_600x900.jpg", "library_capsule.jpg"];
 const HERO_ART: [&str; 3] = ["library_hero.jpg", "library_header.jpg", "header.jpg"];
+const LOGO_ART: [&str; 1] = ["logo.png"];
 
 impl Manifest {
     pub fn into_game(self, root: &Path) -> Game {
@@ -181,6 +182,7 @@ impl Manifest {
         game.install_dir = Some(self.install_dir);
         game.cover = cached_art(root, self.app_id, &COVER_ART);
         game.hero = cached_art(root, self.app_id, &HERO_ART);
+        game.logo = cached_art(root, self.app_id, &LOGO_ART);
         game
     }
 }
