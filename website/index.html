@@ -3,130 +3,365 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Saber — your games, one quiet place</title>
-  <meta name="description" content="Saber is a tiny, GPU-rendered game launcher. Steam, Epic and everything else on one beautiful shelf.">
-  <meta name="theme-color" content="#0b0b0c">
+  <title>Saber: every game you own, on one shelf</title>
+  <meta name="description" content="Saber is a tiny, GPU-drawn game launcher. Steam, Epic and everything else on one shelf. Free, open source, no accounts.">
+  <meta name="theme-color" content="#f2ecdf">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700;800;900&family=Geist+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="iso-brutal.css">
+  <link rel="stylesheet" href="saber.css">
+  <script>
+    // Apply saved mood and mode before first paint so the page doesn't flash.
+    try {
+      const d = document.documentElement;
+      d.dataset.mood = localStorage.getItem("saber-mood") || "ember";
+      const mode = localStorage.getItem("saber-mode");
+      if (mode === "dark" || (!mode && matchMedia("(prefers-color-scheme: dark)").matches)) d.dataset.theme = "dark";
+    } catch {}
+  </script>
 </head>
-<body>
-  <header class="nav">
-    <a class="brand" href="#top" aria-label="Saber home">
-      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-        <path d="M18 46 L46 18" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
-        <path d="M18 46 L23 41" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-      </svg>
-      <span>Saber</span>
-    </a>
-    <nav class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#themes">Themes</a>
-      <a href="https://github.com/diiviikk5/Saber">GitHub</a>
-    </nav>
+<body class="ib">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="ib-nav">
+    <div class="ib-container ib-nav__inner">
+      <a class="ib-brand" href="#top" aria-label="Saber home">
+        <span class="ib-brand__mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M5 19l2.6-2.6" stroke="currentColor" stroke-width="5.4" stroke-linecap="round"/></svg>
+        </span>
+        Saber
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a class="ib-navlink" href="#features">Features</a>
+        <a class="ib-navlink" href="#inside">How it works</a>
+        <a class="ib-navlink" href="#moods">Moods</a>
+        <a class="ib-navlink" href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="ib-btn ib-btn--paper ib-btn--sm ib-btn--icon" id="mode" type="button" aria-label="Toggle dark mode">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg>
+        </button>
+        <a class="ib-btn ib-btn--ink ib-btn--sm" href="https://github.com/diiviikk5/Saber">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="gh"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></svg>
+          <span class="hide-sm">GitHub</span>
+        </a>
+      </div>
+    </div>
   </header>
 
-  <main id="top">
-    <section class="hero">
-      <p class="eyebrow">Game launcher · v0.1</p>
-      <h1>Your games,<br><em>one quiet place.</em></h1>
-      <p class="lede">
-        Saber is a tiny, GPU-rendered launcher that gathers Steam, Epic and
-        everything else onto a single shelf — and gets out of your way.
-      </p>
-      <div class="actions">
-        <a class="button primary" href="#download" aria-disabled="true">
-          Download for Windows
-          <span class="soon">soon</span>
-        </a>
-        <a class="button ghost" href="https://github.com/diiviikk5/Saber">View source →</a>
-      </div>
-      <p class="meta">Free &amp; open source · Written in Rust · Built on GPUI</p>
-    </section>
+  <main id="main">
+    <!-- ============================================================ hero -->
+    <section class="hero" id="top">
+      <div class="ib-gridpaper" aria-hidden="true"></div>
+      <div class="ib-container">
+        <span class="ib-kicker rise" style="--d:0">Game launcher · v0.1</span>
+        <h1 class="ib-h1 hero-title" aria-label="Every game you own. One shelf.">
+          <span class="w" style="--d:1">Every</span>
+          <span class="w" style="--d:2">game</span>
+          <span class="w" style="--d:3">you</span>
+          <span class="w" style="--d:4">own.</span><br>
+          <span class="ib-block drop" style="--d:6">One</span>
+          <span class="w" style="--d:7">shelf.</span>
+        </h1>
 
-    <section class="showcase" aria-label="Saber app preview">
-      <div class="blade" aria-hidden="true"></div>
-      <div class="window">
-        <div class="titlebar">
-          <span class="dots"><i></i><i></i><i></i></span>
-          <span class="search">Search your library <kbd>Ctrl K</kbd></span>
+        <div class="hero-row">
+          <div>
+            <p class="ib-lead rise" style="--d:8">
+              Saber finds your Steam and Epic games on its own, pulls in their cover art,
+              and puts everything on one fast, quiet shelf. It's native Rust drawn on the GPU,
+              with no browser engine inside and no account to make.
+            </p>
+            <div class="actions rise" style="--d:9">
+              <a class="ib-btn ib-btn--lg" href="#download">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg>
+                Download for Windows
+                <span class="soon">soon</span>
+              </a>
+              <a class="ib-btn ib-btn--paper ib-btn--lg" href="https://github.com/diiviikk5/Saber">Read the source</a>
+            </div>
+            <p class="ib-note rise" style="--d:10">Free · MIT licensed · No accounts, no ads, no telemetry</p>
+          </div>
+
+          <button class="find rise" style="--d:10" id="find" type="button" aria-label="Press Ctrl K">
+            <span class="ib-keys" id="keys">
+              <span class="ib-keycap">Ctrl</span><span class="ib-plus">+</span><span class="ib-keycap ib-keycap--accent">K</span>
+            </span>
+            <span class="find__label ib-mono">finds any game, instantly</span>
+          </button>
         </div>
-        <div class="app">
-          <aside class="side">
-            <span class="side-item active">Library <b>42</b></span>
-            <span class="side-item">Favorites <b>8</b></span>
-            <span class="side-item">Recently played</span>
-            <span class="side-label">Sources</span>
-            <span class="side-item">Steam <b>31</b></span>
-            <span class="side-item">Epic <b>7</b></span>
-            <span class="side-item">Manual <b>4</b></span>
-          </aside>
-          <div class="content">
-            <div class="feature">
-              <div class="feature-art"></div>
-              <div class="feature-info">
-                <span class="tag">Continue playing</span>
-                <strong>Hollow Tides</strong>
-                <span class="stats">38h played · last played yesterday</span>
-                <span class="play">▶ Play</span>
+
+        <!-- the app, as a window slab -->
+        <figure class="ib-slab app rise" style="--d:11" aria-label="A preview of the Saber window">
+          <div class="ib-slab__bar">
+            <span class="ib-slab__dot" style="background:var(--ib-hot)"></span>
+            <span class="ib-slab__dot" style="background:var(--ib-accent)"></span>
+            <span class="ib-slab__dot" style="background:var(--ib-card)"></span>
+            <span class="ib-slab__title">Saber</span>
+            <span class="app-search" id="app-search"><span id="app-query">Search your library</span><kbd>Ctrl K</kbd></span>
+            <span class="ib-slab__badge">Live preview</span>
+          </div>
+          <div class="app__body" id="app-body">
+            <aside class="app__side">
+              <span class="app__item is-on">Library <b>20</b></span>
+              <span class="app__item">Favorites <b>4</b></span>
+              <span class="app__item">Recently played</span>
+              <span class="app__label">Sources</span>
+              <span class="app__item">Steam <b>15</b></span>
+              <span class="app__item">Epic <b>5</b></span>
+              <span class="app__label">Playing now</span>
+              <span class="app__timer ib-mono"><i></i><span data-timer>00:42:17</span></span>
+            </aside>
+            <div class="app__main">
+              <div class="app__hero" id="app-hero" style="--a:#ff8a3d;--b:#3b1530">
+                <div class="app__hero-info">
+                  <span class="app__tag">Continue playing</span>
+                  <strong id="app-title">Hollow Tides</strong>
+                  <span class="app__stats" id="app-stats">38h played · yesterday</span>
+                  <span class="app__play">▶ Play</span>
+                </div>
+              </div>
+              <div class="app__shelf" id="app-shelf">
+                <button class="poster is-on" type="button" style="--a:#ff8a3d;--b:#3b1530" data-hours="38h played · yesterday">Hollow Tides</button>
+                <button class="poster" type="button" style="--a:#3d8bff;--b:#0b1633" data-hours="112h played · last week">Neon Drift</button>
+                <button class="poster" type="button" style="--a:#e0453a;--b:#1f0b0b" data-hours="9h played · 3 days ago">Ashen Crown</button>
+                <button class="poster" type="button" style="--a:#6cc46a;--b:#0d1f12" data-hours="64h played · last month">Moss &amp; Iron</button>
+                <button class="poster" type="button" style="--a:#b77cff;--b:#1a0d2b" data-hours="Never played · new">Starfall</button>
+                <button class="poster" type="button" style="--a:#f1c46a;--b:#2a1a0a" data-hours="21h played · in March">Dune Sea</button>
               </div>
             </div>
-            <div class="shelf">
-              <div class="poster" style="--a:#2b4a6f;--b:#0f1622"><span>Neon Drift</span></div>
-              <div class="poster" style="--a:#6f3b2b;--b:#1c0f0b"><span>Ashen Crown</span></div>
-              <div class="poster" style="--a:#3d5b3a;--b:#0e150d"><span>Moss &amp; Iron</span></div>
-              <div class="poster" style="--a:#5a2b6f;--b:#140b1c"><span>Starfall</span></div>
-              <div class="poster" style="--a:#6f5c2b;--b:#1c170b"><span>Dune Sea</span></div>
-              <div class="poster" style="--a:#2b6f66;--b:#0b1c1a"><span>Low Orbit</span></div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============================================================ marquee -->
+    <div class="marquee-wrap" aria-hidden="true">
+    <div class="ib-marquee">
+      <div class="ib-marquee__track">
+        <span class="ib-marquee__item">Steam <i class="ib-marquee__star"></i> Epic <i class="ib-marquee__star"></i> Any .exe <i class="ib-marquee__star"></i> No accounts <i class="ib-marquee__star"></i> No ads <i class="ib-marquee__star"></i> Drawn on the GPU <i class="ib-marquee__star"></i> Written in Rust <i class="ib-marquee__star"></i></span>
+        <span class="ib-marquee__item">Steam <i class="ib-marquee__star"></i> Epic <i class="ib-marquee__star"></i> Any .exe <i class="ib-marquee__star"></i> No accounts <i class="ib-marquee__star"></i> No ads <i class="ib-marquee__star"></i> Drawn on the GPU <i class="ib-marquee__star"></i> Written in Rust <i class="ib-marquee__star"></i></span>
+      </div>
+    </div>
+    </div>
+
+    <!-- ============================================================ features: cartridges -->
+    <section class="ib-section" id="features">
+      <div class="ib-container">
+        <div class="section-head">
+          <span class="ib-kicker">What's in the box</span>
+          <h2 class="ib-h2">Six things it does <span class="ib-mark">really well.</span></h2>
+          <p class="ib-lead">Each one is a cartridge. Hover to pull one out.</p>
+        </div>
+
+        <div class="carts">
+          <article class="cart" style="--label:var(--ib-accent);--label-ink:var(--ib-accent-ink)">
+            <header class="cart__label"><span class="ib-mono">SBR-01</span><span class="ib-mono">IMPORT</span></header>
+            <div class="ib-well cart__art">
+              <div class="sources">
+                <span class="ib-tag">Steam <b class="ib-mono">15</b></span>
+                <span class="ib-tag ib-tag--alt">Epic <b class="ib-mono">5</b></span>
+                <span class="ib-tag ib-tag--hot">.exe <b class="ib-mono">+</b></span>
+              </div>
+            </div>
+            <h3 class="ib-h3">Finds everything</h3>
+            <p class="ib-body">Steam and Epic installs come in on first launch, with cover art taken from Steam's own cache. Anything else is one Ctrl N away.</p>
+            <div class="cart__ridges" aria-hidden="true"></div>
+          </article>
+
+          <article class="cart" style="--label:var(--ib-hot);--label-ink:var(--ib-hot-ink)">
+            <header class="cart__label"><span class="ib-mono">SBR-02</span><span class="ib-mono">TINT</span></header>
+            <div class="ib-well cart__art">
+              <div class="tint">
+                <span class="tint__poster"></span>
+                <span class="tint__arrow" aria-hidden="true">→</span>
+                <span class="tint__chips"><i style="background:#ff8a3d"></i><i style="background:#c2416b"></i><i style="background:#3b1530"></i></span>
+              </div>
+            </div>
+            <h3 class="ib-h3">The art paints the room</h3>
+            <p class="ib-body">Pick a game and its cover tints the whole window, from the hero banner to the glow on the Play button.</p>
+            <div class="cart__ridges" aria-hidden="true"></div>
+          </article>
+
+          <article class="cart" style="--label:var(--ib-alt);--label-ink:#fff">
+            <header class="cart__label"><span class="ib-mono">SBR-03</span><span class="ib-mono">CLOCK</span></header>
+            <div class="ib-well cart__art">
+              <div class="clock ib-mono"><i></i><span data-timer>00:42:17</span></div>
+            </div>
+            <h3 class="ib-h3">Knows when you played</h3>
+            <p class="ib-body">A live session timer while you play, then total hours and last-played on every game, so “continue playing” is always right.</p>
+            <div class="cart__ridges" aria-hidden="true"></div>
+          </article>
+
+          <article class="cart" style="--label:var(--ib-card);--label-ink:var(--ib-text)">
+            <header class="cart__label"><span class="ib-mono">SBR-04</span><span class="ib-mono">KEYS</span></header>
+            <div class="ib-well cart__art">
+              <div class="minikeys">
+                <span class="ib-kbd">Ctrl K</span><span class="ib-kbd">Enter</span><span class="ib-kbd">F</span><span class="ib-kbd">← →</span>
+              </div>
+            </div>
+            <h3 class="ib-h3">Keyboard first</h3>
+            <p class="ib-body">Search with Ctrl K, move with the arrows, Enter to play, F to favorite. The mouse is optional.</p>
+            <div class="cart__ridges" aria-hidden="true"></div>
+          </article>
+
+          <article class="cart" style="--label:var(--ib-accent);--label-ink:var(--ib-accent-ink)">
+            <header class="cart__label"><span class="ib-mono">SBR-05</span><span class="ib-mono">SHAPE</span></header>
+            <div class="ib-well cart__art">
+              <div class="dials">
+                <span><label class="ib-mono">Poster</label><span class="ib-bar"><i style="width:62%"></i></span></span>
+                <span><label class="ib-mono">Corners</label><span class="ib-bar"><i style="width:35%"></i></span></span>
+                <span><label class="ib-mono">Titles</label><b class="dials__serif">Serif</b></span>
+              </div>
+            </div>
+            <h3 class="ib-h3">Yours to shape</h3>
+            <p class="ib-body">Six moods, any accent, poster size, corner style, serif or sans titles, and a Mica or Acrylic backdrop. Every change applies live.</p>
+            <div class="cart__ridges" aria-hidden="true"></div>
+          </article>
+
+          <article class="cart" style="--label:var(--ib-hot);--label-ink:var(--ib-hot-ink)">
+            <header class="cart__label"><span class="ib-mono">SBR-06</span><span class="ib-mono">LIGHT</span></header>
+            <div class="ib-well cart__art">
+              <div class="weights ib-mono">
+                <span><b>0</b> accounts</span><span><b>0</b> ads</span><span><b>0</b> background services</span>
+              </div>
+            </div>
+            <h3 class="ib-h3">Featherweight</h3>
+            <p class="ib-body">Native Rust on GPUI, the GPU framework behind the Zed editor. It opens fast, idles quietly and can tuck itself away when you hit Play.</p>
+            <div class="cart__ridges" aria-hidden="true"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ the blade -->
+    <div class="ib-container">
+      <div class="blade" id="blade" data-lit="false">
+        <button class="blade__hilt" id="hilt" type="button" aria-pressed="false" aria-label="Ignite the saber">
+          <span class="blade__grip" aria-hidden="true"></span>
+          <span class="blade__switch" aria-hidden="true"></span>
+        </button>
+        <div class="blade__beam" aria-hidden="true"><i></i></div>
+        <span class="blade__hint ib-mono" aria-hidden="true">← press to ignite</span>
+      </div>
+    </div>
+
+    <!-- ============================================================ how it works: exploding stack -->
+    <section class="ib-section inside" id="inside">
+      <div class="ib-container inside__grid">
+        <div>
+          <span class="ib-kicker">Under the hood</span>
+          <h2 class="ib-h2">From your drives to the shelf in <span class="ib-mark">four layers.</span></h2>
+          <ol class="steps">
+            <li class="ib-row" data-layer="1"><span class="ib-row__num">01</span><div><h3 class="ib-h3">Your drives</h3><p class="ib-body">Saber reads Steam's library folders and Epic's install manifests. Nothing is uploaded or synced.</p></div></li>
+            <li class="ib-row" data-layer="2"><span class="ib-row__num">02</span><div><h3 class="ib-h3">The scanner</h3><p class="ib-body">Every install becomes one entry in a plain JSON library you can read, back up or edit.</p></div></li>
+            <li class="ib-row" data-layer="3"><span class="ib-row__num">03</span><div><h3 class="ib-h3">The art</h3><p class="ib-body">Covers and banners come from Steam's local cache, or from any image you pick for a game.</p></div></li>
+            <li class="ib-row" data-layer="4"><span class="ib-row__num">04</span><div><h3 class="ib-h3">The shelf</h3><p class="ib-body">Drawn by the GPU, fitted to your window, and launched through the store that owns the game.</p></div></li>
+          </ol>
+        </div>
+
+        <div class="stack-wrap">
+          <div class="ib-iso-stage stage" id="stage" role="button" tabindex="0" aria-pressed="false" aria-label="Take the stack apart">
+            <div class="ib-iso stack" id="stack">
+              <div class="ib-iso__layer l1"><div class="ib-iso__label"><b>01</b>Drives</div><span class="l1__text ib-mono">libraryfolders.vdf<br>*.item manifests</span></div>
+              <div class="ib-iso__layer l2"><div class="ib-iso__label"><b>02</b>Scanner</div><span class="l2__text ib-mono">library.json</span></div>
+              <div class="ib-iso__layer l3"><div class="ib-iso__label"><b>03</b>Art</div></div>
+              <div class="ib-iso__layer l4"><div class="ib-iso__label"><b>04</b>Shelf</div><span class="l4__posters"><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+            </div>
+          </div>
+          <button class="ib-btn ib-btn--paper ib-btn--sm stack-btn" id="stack-btn" type="button">Take it apart</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ moods -->
+    <section class="ib-section moods" id="moods">
+      <div class="ib-container moods__grid">
+        <div>
+          <span class="ib-kicker">Pick a mood</span>
+          <h2 class="ib-h2">Six moods ship in the app. <span class="ib-block">Try one.</span></h2>
+          <p class="ib-lead">Each key repaints this page with the same accent Saber uses. Try them all, then flip the lights with the toggle up top.</p>
+        </div>
+        <div class="moodpad" role="radiogroup" aria-label="Mood">
+          <button class="ib-keycap mood" role="radio" data-mood="ember" style="--m:#ff5a36"><i></i>Ember</button>
+          <button class="ib-keycap mood" role="radio" data-mood="glacier" style="--m:#7cc4ff"><i></i>Glacier</button>
+          <button class="ib-keycap mood" role="radio" data-mood="moss" style="--m:#9bd46a"><i></i>Moss</button>
+          <button class="ib-keycap mood" role="radio" data-mood="orchid" style="--m:#d78cff"><i></i>Orchid</button>
+          <button class="ib-keycap mood" role="radio" data-mood="sand" style="--m:#e8c27a"><i></i>Sand</button>
+          <button class="ib-keycap mood" role="radio" data-mood="paper" style="--m:#e04a2a"><i></i>Paper</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ spec sheet + faq -->
+    <section class="ib-section spec" id="faq">
+      <div class="ib-container spec__grid">
+        <div>
+          <span class="ib-kicker">Spec sheet</span>
+          <h2 class="ib-h2 spec__title">The fine print, printed large.</h2>
+          <div class="ib-table-wrap">
+            <table class="ib-table">
+              <tbody>
+                <tr><th scope="row">Renderer</th><td>GPU, via GPUI</td></tr>
+                <tr><th scope="row">Language</th><td>Rust</td></tr>
+                <tr><th scope="row">Sources</th><td>Steam, Epic, any executable</td></tr>
+                <tr><th scope="row">Platforms</th><td>Windows first</td></tr>
+                <tr><th scope="row">Accounts</th><td>None, ever</td></tr>
+                <tr><th scope="row">Telemetry</th><td>None</td></tr>
+                <tr><th scope="row">License</th><td><span class="ib-badge ib-badge--accent">MIT</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="faqs">
+          <details class="ib-faq" open>
+            <summary>Does it replace Steam or Epic?</summary>
+            <div>No. Saber launches games through the store that owns them, so achievements, cloud saves and friends keep working. It's the front door, not the house.</div>
+          </details>
+          <details class="ib-faq">
+            <summary>Do I need an account?</summary>
+            <div>No. Saber never asks you to sign in. Your library is a JSON file on your own disk.</div>
+          </details>
+          <details class="ib-faq">
+            <summary>What about games from other places?</summary>
+            <div>Add any executable with Ctrl N, then right-click it and choose “Change cover…” to give it art.</div>
+          </details>
+          <details class="ib-faq">
+            <summary>When can I download it?</summary>
+            <div>Windows builds land with the first release. Watch the repository on GitHub to hear about it first.</div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ final -->
+    <section class="final-wrap" id="download">
+      <div class="ib-container">
+        <div class="ib-final">
+          <div class="ib-gridpaper" aria-hidden="true"></div>
+          <div class="final__inner">
+            <h2 class="ib-h1 final__title">Draw your saber.</h2>
+            <p class="ib-lead">The first Windows release is on its way. Star the repo and you'll know the moment it lands.</p>
+            <div class="actions actions--center">
+              <a class="ib-btn ib-btn--ink ib-btn--lg" href="https://github.com/diiviikk5/Saber">★ Star on GitHub</a>
+              <span class="ib-btn ib-btn--paper ib-btn--lg is-soon" aria-disabled="true">Windows build <span class="soon">soon</span></span>
             </div>
           </div>
         </div>
       </div>
     </section>
-
-    <section class="features" id="features">
-      <article>
-        <span class="num">01</span>
-        <h2>One shelf</h2>
-        <p>Saber finds your Steam and Epic installs on its own and pulls in the cover art. Anything else is a drag-and-drop away.</p>
-      </article>
-      <article>
-        <span class="num">02</span>
-        <h2>Yours to shape</h2>
-        <p>Pick a palette, tune the accent, the poster size and the corners. Saber should look like your desk, not ours.</p>
-      </article>
-      <article>
-        <span class="num">03</span>
-        <h2>Featherweight</h2>
-        <p>Native Rust, drawn on the GPU. No browser engine hiding inside, no background services, no ads, no accounts.</p>
-      </article>
-    </section>
-
-    <section class="themes" id="themes">
-      <h2>Six moods. <em>Try one.</em></h2>
-      <p>The same palettes ship inside Saber. Click to repaint this page.</p>
-      <div class="swatches" role="radiogroup" aria-label="Theme">
-        <button class="swatch" data-theme="ember" role="radio" aria-checked="true" style="--s:#ff5a36;--sb:#0b0b0c">Ember</button>
-        <button class="swatch" data-theme="glacier" role="radio" aria-checked="false" style="--s:#7cc4ff;--sb:#0a0d12">Glacier</button>
-        <button class="swatch" data-theme="moss" role="radio" aria-checked="false" style="--s:#9bd46a;--sb:#0b0d0a">Moss</button>
-        <button class="swatch" data-theme="orchid" role="radio" aria-checked="false" style="--s:#d78cff;--sb:#0e0b10">Orchid</button>
-        <button class="swatch" data-theme="sand" role="radio" aria-checked="false" style="--s:#e8c27a;--sb:#0f0d0a">Sand</button>
-        <button class="swatch" data-theme="paper" role="radio" aria-checked="false" style="--s:#e04a2a;--sb:#f4f1ea">Paper</button>
-      </div>
-    </section>
   </main>
 
-  <footer class="footer" id="download">
-    <div class="footer-cta">
-      <h2>Draw your saber.</h2>
-      <p>Windows builds land with the first release. Watch the repo to hear about it first.</p>
-      <a class="button ghost" href="https://github.com/diiviikk5/Saber">Star on GitHub</a>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2026 Saber</span>
-      <span>Made with Rust &amp; GPUI</span>
+  <footer class="ib-footer">
+    <div class="ib-container footer__inner">
+      <a class="ib-brand" href="#top">
+        <span class="ib-brand__mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M5 19l2.6-2.6" stroke="currentColor" stroke-width="5.4" stroke-linecap="round"/></svg></span>
+        Saber
+      </a>
+      <span class="ib-note">© 2026 Saber · MIT · Made with Rust &amp; GPUI</span>
+      <a class="ib-navlink" href="https://github.com/diiviikk5/Saber">GitHub →</a>
     </div>
   </footer>
 
