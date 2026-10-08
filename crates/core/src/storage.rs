@@ -6,6 +6,11 @@ use std::path::{Path, PathBuf};
 
 /// `%APPDATA%\Saber`, `~/Library/Application Support/Saber` or
 /// `$XDG_CONFIG_HOME/saber`. Override with `SABER_HOME` for testing.
+/// Where generated looks (tints and blurred backdrops) are cached.
+pub fn looks_dir() -> PathBuf {
+    art_dir().join("looks")
+}
+
 pub fn data_dir() -> PathBuf {
     if let Some(home) = std::env::var_os("SABER_HOME") {
         return PathBuf::from(home);

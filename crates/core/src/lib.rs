@@ -5,6 +5,7 @@ pub mod format;
 pub mod game;
 pub mod launch;
 pub mod library;
+pub mod look;
 pub mod manual;
 pub mod palette;
 pub mod scan;
