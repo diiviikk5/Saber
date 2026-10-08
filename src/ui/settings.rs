@@ -185,6 +185,12 @@ pub fn settings_page(app: &Saber, cx: &mut Context<Saber>) -> impl IntoElement +
 
     let behavior = section("Behavior", cx)
         .child(row(
+            "Find missing art",
+            "Look up covers on the Steam store for games without any. Sends the title to Steam.",
+            toggle("fetch-art", s.fetch_art, |s| s.fetch_art = !s.fetch_art, cx),
+            cx,
+        ))
+        .child(row(
             "Minimize on launch",
             "Get out of the way while you play.",
             toggle(
